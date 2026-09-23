@@ -414,7 +414,10 @@ details.fold .in{padding:0 12px 12px}
   const between = (v, z) => v >= Math.min(...z) && v <= Math.max(...z);
   const tage = s => Math.round((new Date(s + "T00:00:00") - new Date("1970-01-01T00:00:00")) / 864e5);
 
-  const higher = a => a.szenarien.slice().sort((x,y)=>y.gewicht-x.gewicht)[0];
+  // Szenariogewichte: datenbasiert (Modell aus 800.000 historischen Zielpaaren, geprueft ab 2012), sonst die der Analyse
+  const WS = a => (a.wahrscheinlichkeit && a.wahrscheinlichkeit.szenario) || null;
+  const gw = (a, s) => { const w = WS(a); return w ? (s.richtung === "auf" ? w.auf : w.ab) : s.gewicht; };
+  const higher = a => a.szenarien.slice().sort((x,y)=>gw(a,y)-gw(a,x))[0];
   const cur = a => (a.kurs_aktuell != null ? a.kurs_aktuell : a.kurs);
   const SYM = {USD:"$", EUR:"€", AUD:"A$", CAD:"C$", CHF:"CHF", GBp:"p", HKD:"HK$", JPY:"¥", SEK:"kr"};
   const wg = a => a.waehrung || "USD";
@@ -512,7 +515,12 @@ details.fold .in{padding:0 12px 12px}
 
   const SGT = {stark: "Signal stark", mittel: "Signal mittel", schwach: "Signal schwach", vorlaeufig: "Signal offen"};
   const sigChip = L => L.sg ? `<span class="sig ${L.sg.stufe}">${SGT[L.sg.stufe] || "Signal"} · ${L.sg.qualitaet}/4</span>` : "";
-  const staffelZeile = L => !(L.sg && L.sg.stufen) ? "" : `<div class="cr">${L.sg.stufen.map((t, i) => `<div class="${t.am ? "ja" : ""}"><div class="k">${i + 1}. Drittel${t.am ? " ✓" : ""}</div><div class="v mono">${fmt(t.kurs)}</div></div>`).join("")}</div>`;
+  const PLAN_T = pl => pl && pl[0] === 1 ? "alles an der Oberkante" : "50 · 30 · 20 %";
+  const staffelZeile = L => {
+    if (!(L.sg && L.sg.stufen)) return "";
+    const pl = L.sg.plan || [0.5, 0.3, 0.2];
+    return `<div class="cr">${L.sg.stufen.map((t, i) => pl[i] > 0 ? `<div class="${t.am ? "ja" : ""}"><div class="k">${Math.round(pl[i] * 100)} %${t.am ? " ✓" : ""}</div><div class="v mono">${fmt(t.kurs)}</div></div>` : `<div style="opacity:.45"><div class="k">–</div><div class="v mono">${fmt(t.kurs)}</div></div>`).join("")}</div>`;
+  };
 
   function boxBlock(L, compact) {
     const st = ST[L.status] || ST.offen;
@@ -521,7 +529,7 @@ details.fold .in{padding:0 12px 12px}
     const seit = L.lg.seit ? ` seit ${dsh(L.lg.seit)}` : "";
     let l2 = "";
     if (L.status === "im_bereich") l2 = `<span>Kurs <b>in der Box</b>${seit}</span><span>${L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
-    else if (L.status === "offen") l2 = `<span>Kurs <b>${pc1(L.abstand)} über</b> der Box</span><span>${L.lg.box_beruehrt_am?`berührt ${dsh(L.lg.box_beruehrt_am)}`:L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
+    else if (L.status === "offen") l2 = `<span>Kurs <b>${pc1(L.abstand)} über</b> der Box${L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.box_vor_ziel1 ? ` · Box zuerst <b>${L.a.wahrscheinlichkeit.box_vor_ziel1.box} %</b>` : ""}</span><span>${L.lg.box_beruehrt_am?`berührt ${dsh(L.lg.box_beruehrt_am)}`:L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
     else if (L.status === "unter_box") l2 = `<span>Kurs <b>${pc1(-L.abstand)} unter</b> der Box</span><span>Prüfmarke <b class="mono">${fmt(L.stop)}</b></span>`;
     else if (L.status === "gelaufen") l2 = `<span>Box erreicht ${dsh(L.lg.box_beruehrt_am)}</span><span>Kurs <b>${pc1(L.abstand)} darüber</b></span>`;
     else if (L.status === "gestoppt") l2 = `<span>Wochenschluss unter <b class="mono">${fmt(L.stop)}</b></span><span>${dsh(L.lg.zwischenmarke_gebrochen_am)}</span>`;
@@ -551,7 +559,7 @@ details.fold .in{padding:0 12px 12px}
       <div class="meta"><span>Analyse vom ${dat(a.datum)}</span><span>${chg!=null?`<span class="${chg>=0?'ok':'bad'}">${pct(chg)}</span> seit Analyse`:''}${a.kurs_aktuell_eur!=null&&wg(a)!=="EUR"?` · <span class="mono">${fmt(a.kurs_aktuell_eur)} €</span>`:''}</span></div>
       ${boxBlock(L, true)}
       ${zchips.length?`<div class="chips">${zchips.join("")}</div>`:''}
-      <div class="sub-w"><span>${h.richtung==='auf'?'▲':'▼'} ${h.gewicht} %${weg} · ${o.richtung==='auf'?'▲':'▼'} ${o.gewicht} %</span><span>${(a.reviews||[]).length?`${a.reviews.length} Review${a.reviews.length>1?'s':''}`:'noch kein Review'}</span></div>
+      <div class="sub-w"><span>${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %${weg} · ${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} %${WS(a)?'':' (Analyse)'}</span><span>${(a.reviews||[]).length?`${a.reviews.length} Review${a.reviews.length>1?'s':''}`:'noch kein Review'}</span></div>
     </button>`;
   }
 
@@ -590,7 +598,7 @@ details.fold .in{padding:0 12px 12px}
     const zones = (s.zonen||[]).map((z,i)=>{ const bed = s.richtung==="ab" && marke!=null && Math.min(...z) <= marke;
       return `<div class="z ${hits[i]?'hit':''} ${between(k,z)?'now':''}" ${bed?'style="opacity:.55"':''}><span class="n">${i+1}</span><span class="r mono">${fmt(Math.min(...z))} – ${fmt(Math.max(...z))}${bed?' <span style="font-family:inherit;font-size:11px;color:var(--muted)">nur bei Bruch der Marke</span>':''}</span></div>`; }).join("");
     const tol = s.hart_toleranz ? ` <span class="mono">(${fmt(Math.min(...s.hart_toleranz))} – ${fmt(Math.max(...s.hart_toleranz))})</span>` : "";
-    return `<div class="sc ${cls}"><div class="hd"><span class="t"><span class="arrow">${s.richtung==='auf'?'▲':'▼'}</span> ${s.richtung==='auf'?'Aufwärts':'Abwärts'} · Szenario ${esc(s.name)}</span><span class="w">${s.gewicht} %</span></div>
+    return `<div class="sc ${cls}"><div class="hd"><span class="t"><span class="arrow">${s.richtung==='auf'?'▲':'▼'}</span> ${s.richtung==='auf'?'Aufwärts':'Abwärts'} · Szenario ${esc(s.name)}</span><span class="w">${gw(a, s)} %</span></div>
       <div class="ladder">${zones||'<div class="z"><span class="r" style="color:var(--muted)">keine Zonen</span></div>'}</div>
       ${s.hart!=null?`<div class="hard">Hart: Wochenschluss ${s.hart_richtung==='unter'?'unter':'über'} <b class="mono">${geld(s.hart, a)}</b>${tol}${rz&&rz.hart_gebrochen?` <span class="bad">· gebrochen ${dat(rz.hart_gebrochen)}</span>`:''}</div>`:''}
     </div>`;
@@ -602,7 +610,7 @@ details.fold .in{padding:0 12px 12px}
 
   function stateLine(a, p, st) {
     if (!st || st.status === "wartet") return `Bereich seit ${dat(a.datum)} noch nicht berührt.`;
-    let l = st.tranchen ? `Gekauft <b>${st.tranchen.length} von ${st.tranchen_geplant || 3} Dritteln</b> (ab ${dsh(st.eingestiegen_am)}) · Einstand <b class="mono">${geld(st.einstieg_kurs, a)}</b>`
+    let l = st.tranchen ? `Gekauft <b>${Math.round((st.investiert_anteil ?? 1) * 100)} % des Plans</b> (${st.tranchen.length} von ${st.tranchen_geplant || 3} Stufen, ab ${dsh(st.eingestiegen_am)}) · Einstand <b class="mono">${geld(st.einstieg_kurs, a)}</b>`
                         : `Eingestiegen <b>${dsh(st.eingestiegen_am)}</b> zu <b class="mono">${geld(st.einstieg_kurs, a)}</b>`;
     if (st.pruefmarke_gebrochen_am) l += ` · <span class="bad">Prüfmarke gebrochen ${dsh(st.pruefmarke_gebrochen_am)}</span>`;
     const e = v => v != null && wg(a) !== "EUR" ? ` <span style="color:var(--muted)">(in Euro ${pnlTxt(v)})</span>` : "";
@@ -634,22 +642,28 @@ details.fold .in{padding:0 12px 12px}
     if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status)) return "";
     if (h.richtung === "ab") {
       const tiefer = dn && (dn.zonen||[]).some(z => Math.min(...z) < L.box[1]);
-      return `Kein Widerspruch: Die Box ist das Ziel des Abwärtsszenarios (${h.gewicht} %). Der wahrscheinlichere Abverkauf ist der Weg in die Box – dort wird gekauft, und von dort führt der Weg zur selben Zielleiter wie im Aufwärtsszenario (im Chart grün gestrichelt, „danach ▲“). Beide Szenarien enden im selben Anstieg; sie unterscheiden sich im Weg, nicht im Ziel.${tiefer?` Die unterste Zone reicht unter die Box; läuft das Szenario voll, notiert der Kurs vorübergehend unter dem Einstieg, solange die Absicherung hält.`:''}`;
+      return `Kein Widerspruch: Die Box ist das Ziel des Abwärtsszenarios (${gw(L.a, h)} %). Der wahrscheinlichere Abverkauf ist der Weg in die Box – dort wird gekauft, und von dort führt der Weg zur selben Zielleiter wie im Aufwärtsszenario (im Chart grün gestrichelt, „danach ▲“). Beide Szenarien enden im selben Anstieg; sie unterscheiden sich im Weg, nicht im Ziel.${tiefer?` Die unterste Zone reicht unter die Box; läuft das Szenario voll, notiert der Kurs vorübergehend unter dem Einstieg, solange die Absicherung hält.`:''}`;
     }
-    if (L.status === "im_bereich") return `Das Aufwärtsszenario (${h.gewicht} %) ist wahrscheinlicher und der Kurs steht in der Box – die Box wird gerade gehandelt.`;
-    if (L.status === "offen") return `Das Aufwärtsszenario (${h.gewicht} %) ist wahrscheinlicher: Der Kurs erreicht die Box möglicherweise nicht. Dann wird nicht gekauft – das ist kein Fehler der Box.`;
+    if (L.status === "im_bereich") return `Das Aufwärtsszenario (${gw(L.a, h)} %) ist wahrscheinlicher und der Kurs steht in der Box – die Box wird gerade gehandelt.`;
+    if (L.status === "offen") return `Das Aufwärtsszenario (${gw(L.a, h)} %) ist wahrscheinlicher: Der Kurs erreicht die Box möglicherweise nicht. Dann wird nicht gekauft – das ist kein Fehler der Box.`;
     return "";
   }
 
   function staffelung(L) {
     if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status) || !(L.sg && L.sg.stufen)) return "";
     const e = v => eur(v, L.a);
-    const t = L.sg.stufen;
+    const t = L.sg.stufen, pl = L.sg.plan || [0.5, 0.3, 0.2];
     const nam = t[2].kurs >= L.box[1] * 0.999 ? ["Oberkante der Box", "Mitte der Box", "Unterkante der Box"] : ["Oberkante der Box", "Unterkante der Box", "über der Prüfmarke"];
-    const schnitt = t.reduce((x, y) => x + y.kurs, 0) / t.length;
-    return `<div class="stf"><div class="k">Staffelplan · je ein Drittel · kein Stop</div><table>${t.map((x, i) => `<tr><td>${i + 1}. ${nam[i]}${x.am ? ` <span class="ok">✓ ${dsh(x.am)}</span>` : ""}</td><td class="n mono">${geld(x.kurs, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(x.kurs)!=null&&wg(L.a)!=="EUR"?fmt(e(x.kurs))+" €":""}</td></tr>`).join("")}
-      <tr><td style="color:var(--muted)">Einstand, wenn alle drei gefüllt</td><td class="n mono">${geld(schnitt, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(schnitt)!=null&&wg(L.a)!=="EUR"?fmt(e(schnitt))+" €":""}</td></tr></table>
-      <div class="note" style="font-size:12px;margin-top:4px">Im Rückvergleich (182 Titel, 1986–2026) war dieser Plan die zuverlässigste Variante: 76 % der Fälle nach drei Jahren im Plus, gegenüber 70 % beim vollen Kauf an der Oberkante. Das dritte Drittel wird oft nicht gefüllt – dann bleibt es Reserve. Euro-Werte zum ${fxTxt(L.a)}.</div></div>`;
+    const aktiv = t.map((x, i) => ({...x, g: pl[i], n: nam[i]})).filter(x => x.g > 0);
+    const einstand = aktiv.reduce((a_, x) => a_ + x.g, 0) / aktiv.reduce((a_, x) => a_ + x.g / x.kurs, 0);
+    const stark = pl[0] === 1;
+    const bt = BT && BT.kaufplan_budget ? BT.kaufplan_budget[L.sg.stufe === "stark" ? "stark" : L.sg.stufe === "mittel" ? "mittel" : "schwach"] : null;
+    const bz = (nm) => { const x = bt && bt[nm] && bt[nm]["5 Jahre"]; return x ? `${nm}: ${x.positiv} % im Plus, Median ${x.median > 0 ? "+" : ""}${String(x.median).replace(".", ",")} %` : ""; };
+    return `<div class="stf"><div class="k">Kaufplan · ${stark ? "Signal stark: alles an der Oberkante" : "gestaffelt 50 · 30 · 20 %"} · kein Stop</div><table>${aktiv.map(x => `<tr><td>${Math.round(x.g * 100)} % · ${x.n}${x.am ? ` <span class="ok">✓ ${dsh(x.am)}</span>` : ""}</td><td class="n mono">${geld(x.kurs, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(x.kurs)!=null&&wg(L.a)!=="EUR"?fmt(e(x.kurs))+" €":""}</td></tr>`).join("")}
+      ${aktiv.length > 1 ? `<tr><td style="color:var(--muted)">Einstand, wenn alle Stufen gefüllt</td><td class="n mono">${geld(einstand, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(einstand)!=null&&wg(L.a)!=="EUR"?fmt(e(einstand))+" €":""}</td></tr>` : ""}</table>
+      <div class="note" style="font-size:12px;margin-top:4px">${stark
+        ? `Bei starkem Signal brachte der volle Kauf an der Oberkante im Rückvergleich den höchsten Ertrag auf das ganze Budget (${bz("alles an der Oberkante")}; Staffel: ${bz("50/30/20").replace("50/30/20: ", "")}). Die tieferen Stufen wurden oft nie erreicht – das Geld hätte dann gelegen.`
+        : `Bei ${L.sg.stufe === "mittel" ? "mittlerem" : L.sg.stufe === "vorlaeufig" ? "noch offenem" : "schwachem"} Signal war die Staffel auf das ganze Budget gerechnet gleich gut oder besser und hatte deutlich weniger Verluste (${bz("50/30/20")}; alles an der Oberkante: ${bz("alles an der Oberkante").replace("alles an der Oberkante: ", "")}).`} Euro-Werte zum ${fxTxt(L.a)}.</div></div>`;
   }
 
   function signalDetail(L) {
@@ -684,6 +698,8 @@ details.fold .in{padding:0 12px 12px}
     if (L.lt.konstruktion) kv.push(["Konstruktion", `<span style="font-size:12.5px;color:var(--muted)">${esc(L.lt.konstruktion)}</span>`]);
     if (L.lt.unterkante_original != null || L.lt.oberkante_original != null || L.lt.aenderung) kv.push(["Geändert", esc(L.lt.aenderung || "")]);
     if (L.status === "verpasst" && L.lt.tief != null) kv.push(["Tief", `<span class="mono">${geld(L.lt.tief, L.a)}</span>${L.lt.tief_am?` am ${dat(L.lt.tief_am)}`:''}`]);
+    const bv = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.box_vor_ziel1;
+    if (bv && L.status === "offen") kv.push(["Box vor Ziel 1", `<b>${bv.box} %</b> <span style="color:var(--muted)">– so oft wurde in vergleichbaren Lagen erst die Box erreicht; ${bv.ziel1} % zuerst Ziel 1${bv.keins_3j ? `, ${bv.keins_3j} % keins in drei Jahren` : ""}</span>`]);
     if (L.lg.box_beruehrt_am) kv.push(["Box berührt", `${dat(L.lg.box_beruehrt_am)}${L.lg.tiefster_seit_beruehrung!=null?` · tiefster Kurs seither <span class="mono">${fmt(L.lg.tiefster_seit_beruehrung)}</span>`:''}`]);
     const warn = [];
     if (L.lt.vorlaeufig && L.box) warn.push(esc(L.lt.vorlaeufig_text || "In der Box endet nur eine Teilwelle; die Korrektur kann danach tiefer laufen."));
@@ -876,14 +892,14 @@ details.fold .in{padding:0 12px 12px}
     const badgeP = (px, py, t) => { const bw = 34 * f, bh = 15 * f; const bx = Math.min(X1 - bw - 2, Math.max(xh + 2, px - bw / 2)); A(`<rect x="${bx.toFixed(1)}" y="${(py - bh - 5).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="#fff"/>`); T(bx + bw / 2, py - 5 - 4 * f, t, 10, "#000", "middle", 700); };
     const fw = X1 - xh;
     A(`<g clip-path="url(#${cid})">`);
-    const hauptUp = up && dn ? up.gewicht >= dn.gewicht : true;
+    const hauptUp = up && dn ? gw(a, up) >= gw(a, dn) : true;
     if (dn && zDn.length) {
       let zs = zDn.filter(z => !bedingt(z)); if (!zs.length) zs = zDn.slice(0, 1);
       const xe = xh + fw * (box ? 0.4 : 0.55);
       const pts = linie(start, zs, xh + 4, xe);
       pfad(pts, C.red, 2.4 * f, hauptUp ? "7,5" : null); spitze(pts[pts.length - 2], pts[pts.length - 1], C.red);
       const [ex, ey] = pts[pts.length - 1];
-      badgeP(ex, ey + (box ? 0 : 0), dn.gewicht + " %");
+      badgeP(ex, ey, gw(a, dn) + " %");
       if (box && lt.welle) T(ex + 20 * f, ey + 1 * f, lt.welle.split(" ")[0], 10.5, C.txt, "start", 700);
       if (box && zUp.length) {
         const cp = linie([ex, ey], zUp, ex + 14, X1 - 8);
@@ -894,7 +910,7 @@ details.fold .in{padding:0 12px 12px}
     if (up && zUp.length) {
       const pts = linie(start, zUp, xh + 4, X1 - 8);
       pfad(pts, C.grn, 2.4 * f, hauptUp ? null : "7,5"); spitze(pts[pts.length - 2], pts[pts.length - 1], C.grn);
-      const [ex, ey] = pts[pts.length - 1]; badgeP(ex, ey, up.gewicht + " %");
+      const [ex, ey] = pts[pts.length - 1]; badgeP(ex, ey, gw(a, up) + " %");
     }
     A(`</g>`);
     // Aktueller Kurs
@@ -992,6 +1008,7 @@ details.fold .in{padding:0 12px 12px}
   function openDetail(id) {
     const a = DATA.find(x=>x.id===id); if (!a) return;
     const h = higher(a), o = a.szenarien.find(s=>s!==h) || h, last = (a.reviews||[]).slice(-1)[0], L = lage(a);
+    const hA = a.szenarien.slice().sort((x,y)=>y.gewicht-x.gewicht)[0];     // Gewichtung der Analyse am Analysetag
     const nx = (() => { const done = new Set((a.reviews||[]).map(r=>r.wochen)); for (const w of CHECKPOINTS) if (!done.has(w)) { const d = new Date(a.datum+"T00:00:00"); d.setDate(d.getDate()+w*7); return {w,d}; } return null; })();
     const idx = (a.positionen||[]).map((p,i)=>({p,i}));
     const posL = idx.filter(x=>x.p.typ==="lte"), posS = idx.filter(x=>x.p.typ!=="lte");
@@ -1009,8 +1026,9 @@ details.fold .in{padding:0 12px 12px}
       ${posL.length?`<section class="blk"><h3>Die Box als Position</h3>${posL.map(x=>posBlock(a,x.p,x.i)).join("")}</section>`:''}
       ${a.chart_anfang_url?`<details class="fold"><summary>Chart vom Analysetag</summary><div class="in"><div class="bild"><img src="${esc(a.chart_anfang_url)}" alt="Chart vom Analysetag ${esc(a.instrument)}" loading="lazy"></div>${a.chart_detail_url?`<div class="bild"><img src="${esc(a.chart_detail_url)}" alt="Detailchart vom Analysetag" loading="lazy"></div>`:''}<div class="cap">${a.chart_anfang_art==="original"?`Original vom ${dat(a.datum)}, mit Wellenzählung.`:`Auf den Stand vom ${dat(a.datum)} nachgezeichnet.`}</div></div></details>`:''}
       <details class="fold"><summary>Herleitung · zwei Szenarien</summary><div class="in">
-        <div class="bar"><i class="${h.richtung==='auf'?'up':'dn'}" style="width:${h.gewicht}%"></i><i class="${o.richtung==='auf'?'up':'dn'}" style="width:${o.gewicht}%;opacity:.45"></i></div>
-        <div class="legend"><span><b>${h.richtung==='auf'?'▲':'▼'} ${h.gewicht} %</b> ${h.richtung==='auf'?'aufwärts':'abwärts'}</span><span>${o.richtung==='auf'?'▲':'▼'} ${o.gewicht} % ${o.richtung==='auf'?'aufwärts':'abwärts'}</span></div>
+        <div class="bar"><i class="${h.richtung==='auf'?'up':'dn'}" style="width:${gw(a,h)}%"></i><i class="${o.richtung==='auf'?'up':'dn'}" style="width:${gw(a,o)}%;opacity:.45"></i></div>
+        <div class="legend"><span><b>${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %</b> ${h.richtung==='auf'?'aufwärts':'abwärts'}</span><span>${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} % ${o.richtung==='auf'?'aufwärts':'abwärts'}</span></div>
+        ${WS(a) ? `<div class="note" style="margin:-4px 0 10px;font-size:12.5px">Datenbasiert: Wie oft wurde das nächste Aufwärtsziel (<span class="mono">${fmt(WS(a).ziel_auf)}</span>) vor dem nächsten Abwärtsziel (<span class="mono">${fmt(WS(a).ziel_ab)}</span>) erreicht – aus 800.000 vergleichbaren Kurslagen in 182 Titeln, an einem getrennten Zeitraum geprüft. Die Analyse hatte ${a.szenarien.map(x => `${x.richtung==='auf'?'▲':'▼'} ${x.gewicht} %`).join(" · ")} angesetzt. In drei Jahren keins von beiden: ${WS(a).keins_3j} %.</div>` : ""}
         ${a.szenarien.map(x=>scen(x,last,L.k,a)).join("")}
         ${(a.wechsel_auf!=null||a.wechsel_ab!=null)?`<div class="hard" style="border-top:0;padding-top:0">Wechselmarken: ${a.wechsel_auf!=null?`Wochenschluss über <b class="mono">${fmt(a.wechsel_auf)}</b> → aufwärts`:''}${a.wechsel_auf!=null&&a.wechsel_ab!=null?' · ':''}${a.wechsel_ab!=null?`unter <b class="mono">${fmt(a.wechsel_ab)}</b> → abwärts`:''}</div>`:''}
         <div class="note" style="margin-top:8px">Die Gewichtung ist eine Strukturaussage, keine Zeitprognose. Die Richtungszuordnung ist die gemessen schwächere Seite der Methode; die Zonenrechnung die stärkere.</div>
@@ -1019,8 +1037,8 @@ details.fold .in{padding:0 12px 12px}
       ${posS.length?`<details class="fold"><summary>Kurzfristige Bereiche · Statistik</summary><div class="in">${posS.map(x=>posBlock(a,x.p,x.i)).join("")}<div class="note">Diese Bereiche messen, ob die Methode kurzfristig trifft. Sie sind nicht der Einstieg – der ist die Box.</div></div></details>`:''}
       ${a.bericht_url?`<details class="fold" id="ber"><summary>Vollständiger Bericht</summary><div class="in md" id="ber-in">Lade …</div></details>`:''}
       ${verlauf.length?`<details class="fold"><summary>Verlauf der Box</summary><div class="in vl">${verlauf.map(v=>`<span><span>${(ST[v.status]||{}).t||v.status}</span><span class="mono">seit ${dat(v.seit)} · ${fmt(v.kurs)}</span></span>`).join("")}</div></details>`:''}
-      ${a.extern?`<section class="blk"><h3>HKCM zum Vergleich</h3><div class="ext"><div class="src">${esc(a.extern.quelle)}${a.extern.datum?` · ${dat(a.extern.datum)}`:''}${a.extern.titel?`<br>„${esc(a.extern.titel)}“`:''}</div>
-        <div class="cmp"><div><div class="k">Agent</div><div class="v ${h.richtung==='auf'?'ok':'bad'}">${h.richtung==='auf'?'▲':'▼'} ${h.gewicht} %</div></div><div><div class="k">HKCM</div><div class="v ${a.extern.richtung==='auf'?'ok':'bad'}">${a.extern.richtung==='auf'?'▲':'▼'} ${a.extern.gewicht??'–'}${a.extern.gewicht!=null?' %':''}</div></div></div>
+      ${a.extern?`<section class="blk"><h3>HKCM zum Vergleich · Stand Analysetag</h3><div class="ext"><div class="src">${esc(a.extern.quelle)}${a.extern.datum?` · ${dat(a.extern.datum)}`:''}${a.extern.titel?`<br>„${esc(a.extern.titel)}“`:''}</div>
+        <div class="cmp"><div><div class="k">Agent</div><div class="v ${hA.richtung==='auf'?'ok':'bad'}">${hA.richtung==='auf'?'▲':'▼'} ${hA.gewicht} %</div></div><div><div class="k">HKCM</div><div class="v ${a.extern.richtung==='auf'?'ok':'bad'}">${a.extern.richtung==='auf'?'▲':'▼'} ${a.extern.gewicht??'–'}${a.extern.gewicht!=null?' %':''}</div></div></div>
         <div class="note" style="margin-top:8px">Die eigene Analyse entstand unabhängig; der Vergleich wurde nachträglich angehängt.</div></div></section>`:''}
       <section class="blk"><h3>Reviews</h3>${(a.reviews||[]).length?`<div class="rev">${a.reviews.map(reviewBlock).join("")}</div>`:`<div class="note">Noch kein Review. ${nx?`Das erste ist am ${nx.d.toLocaleDateString("de-DE")} fällig.`:''}</div>`}${nx&&(a.reviews||[]).length?`<div class="note" style="margin-top:8px">Nächstes Review nach ${nx.w} Wochen, fällig am ${nx.d.toLocaleDateString("de-DE")}.</div>`:''}</section>
       <p class="note">Technische Chartstudie im HKCM-Stil, keine Anlageberatung. Genannte Zonen sind Wahrscheinlichkeitsannahmen, keine Zusagen.</p>
@@ -1085,6 +1103,10 @@ details.fold .in{padding:0 12px 12px}
       <div class="note" style="margin-bottom:8px">Die Box-Regel mechanisch nachgebaut und über 25 Jahre angewendet, nur mit den Daten des jeweiligen Tages. Werte nach drei Jahren Haltedauer, ohne Dividenden und Gebühren.</div>
       <h2 style="margin-top:6px">Staffelplan nach Signalqualität</h2>
       <div style="overflow-x:auto"><table>${kopf}${t ? ["stark (3-4 von 4)", "mittel (2 von 4)", "schwach (0-1 von 4)", "alle"].map(nm => zeile(nm, t[nm] && t[nm]["3 Jahre"])).join("") : ""}</table></div>
+      <h2 style="margin-top:12px">Kaufplan auf das ganze Budget · 5 Jahre</h2>
+      <div style="overflow-x:auto"><table><tr><th>Signal · Plan</th><th class="n">n</th><th class="n">im Plus</th><th class="n">Median</th><th class="n">&lt; −20 %</th></tr>${Object.entries(BT.kaufplan_budget || {}).map(([sg, pl]) => Object.entries(pl).map(([nm, x]) => x && x["5 Jahre"] ? `<tr><td>${sg} · ${nm}</td><td class="n">${x["5 Jahre"].n}</td><td class="n">${x["5 Jahre"].positiv} %</td><td class="n">${pc(x["5 Jahre"].median)}</td><td class="n">${x["5 Jahre"].verlust20} %</td></tr>` : "").join("")).join("")}</table></div>
+      <div class="note" style="margin-top:4px">Nicht gefüllte Stufen zählen als liegengebliebenes Geld. Daraus der Plan der App: starkes Signal alles an der Oberkante, sonst 50 · 30 · 20 %.</div>
+      ${BT.modell ? `<h2 style="margin-top:12px">Wahrscheinlichkeiten der Szenarien</h2><div class="note">Aus ${BT.modell.stichprobe.toLocaleString("de-DE")} historischen Zielpaaren: Wie oft wurde ein Ziel oben vor einem Ziel unten erreicht, abhängig von den Abständen, Trend, Momentum, Abstand zum Hoch, Marktlage und Schwankung. Geprüft ab 2012: Brier-Wert ${String(BT.modell.pruefung_ab_2012.brier_modell).replace(".", ",")} gegen ${String(BT.modell.pruefung_ab_2012.brier_5050).replace(".", ",")} bei pauschal 50/50 (kleiner ist besser). Keine Obergrenze.</div>` : ""}
       <h2 style="margin-top:12px">Einstiegsarten im Vergleich</h2>
       <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.vergleich || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
       <h2 style="margin-top:12px">Stop oder halten?</h2>
