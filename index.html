@@ -112,6 +112,17 @@ header.top .sub{font-size:12px;color:var(--muted);margin-top:2px}
 .cr div{background:var(--surf);border-radius:8px;padding:5px 7px}
 .cr .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
 .cr .v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.cr .ja{outline:1.5px solid var(--acc);outline-offset:-1.5px}.cr .ja .k{color:var(--acc)}
+.sig{font-size:12px;padding:4px 9px;border-radius:7px;font-weight:600;white-space:nowrap}
+.sig.stark{background:var(--up-soft);color:var(--up)}.sig.mittel{background:var(--warn-soft);color:var(--warn)}
+.sig.schwach{background:var(--dn-soft);color:var(--dn)}.sig.vorlaeufig{background:var(--surf2);color:var(--muted)}
+.card .chips .sig{border:1px solid currentColor}
+.sgd{margin-top:12px;border-top:1px dashed var(--line);padding-top:10px}
+.sgd .k{font-size:11px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted);margin-bottom:6px;font-weight:600}
+.sgd.stark .k{color:var(--up)}.sgd.schwach .k{color:var(--dn)}.sgd.mittel .k{color:var(--warn)}
+.sgd .bd{display:flex;gap:8px;font-size:13px;padding:2px 0;align-items:flex-start}.sgd .bd span:first-child{width:34px;flex:0 0 34px;font-weight:700}
+.sgd table.bt{width:100%;border-collapse:collapse;font-size:12px;margin-top:4px}.sgd table.bt th{font-weight:500;color:var(--muted);text-align:left;font-size:10.5px}
+.sgd table.bt td,.sgd table.bt th{padding:3px 2px;border-top:1px solid var(--line)}.sgd table.bt .n{text-align:right}
 .scale{position:relative;height:26px;margin:8px 0 0}
 .scale .rail{position:absolute;left:0;right:0;top:10px;height:2px;background:var(--line)}
 .scale .bx{position:absolute;top:5px;height:12px;background:var(--acc);opacity:.55;border-radius:3px}
@@ -335,6 +346,7 @@ details.fold .in{padding:0 12px 12px}
     <div class="seg" id="filters" role="group" aria-label="Filter">
       <button aria-pressed="true" data-f="alle">Alle</button>
       <button aria-pressed="false" data-f="im_bereich" class="im">Im Bereich<span class="n" id="n-im"></span></button>
+      <button aria-pressed="false" data-f="stark" class="im">Signal stark<span class="n" id="n-stark"></span></button>
       <button aria-pressed="false" data-f="nah">Nah an der Box<span class="n" id="n-nah"></span></button>
       <button aria-pressed="false" data-f="offen">Offen<span class="n" id="n-offen"></span></button>
       <button aria-pressed="false" data-f="ohne">Kein Einstieg<span class="n" id="n-ohne"></span></button>
@@ -353,7 +365,7 @@ details.fold .in{padding:0 12px 12px}
     <div class="stat" id="stat-lte" hidden><h2>Bilanz der Box – in der Box gekauft, was kam danach?</h2><div id="stat-lte-body"></div></div>
     <div class="stat" id="stat" hidden><h2>Nebenkennzahl · Take-Profit oder Stop zuerst</h2><div id="statbody"></div></div>
   </section>
-  <div class="foot">Kurse werden einmal täglich aktualisiert. Eine Box, die weit unter dem Kurs liegt, wird trotzdem gezeigt – dort wird gewartet. „Verpasst“ und „Gelaufen“ heißen: Das Tief lag in der Box, der Anstieg läuft – für einen Neueinstieg zu spät. Harte Marken gelten auf Wochenschluss. Alle Zonen sind Wahrscheinlichkeitsannahmen, keine Zusagen – technische Chartstudie im HKCM-Stil, keine Anlageberatung.</div>
+  <div class="foot">Kurse werden einmal täglich aktualisiert. Eine Box, die weit unter dem Kurs liegt, wird trotzdem gezeigt – dort wird gewartet. „Verpasst“ und „Gelaufen“ heißen: Das Tief lag in der Box, der Anstieg läuft – für einen Neueinstieg zu spät. Gekauft wird gestaffelt in drei Dritteln, ohne Stop; eine gebrochene Prüfmarke heißt: nichts nachkaufen, Zählung prüfen. Harte Marken gelten auf Wochenschluss. Alle Zonen sind Wahrscheinlichkeitsannahmen, keine Zusagen – technische Chartstudie im HKCM-Stil, keine Anlageberatung.</div>
 </div>
 
 <div class="reqbar"><form class="in" id="reqform" name="wunsch" method="POST" data-netlify="true" netlify-honeypot="firma" action="https://wellenjournal.netlify.app/">
@@ -373,11 +385,11 @@ details.fold .in{padding:0 12px 12px}
   const CHECKPOINTS = [4, 12, 26, 52, 104];
   const NAH = 15;                                     // "nah an der Box": höchstens so viel Prozent über der Oberkante
   const ST = {
-    im_bereich: {t:"Im Bereich", rank:0, s:"Der Kurs steht in der Box. Gestaffelt kaufen, Stop auf Wochenschluss unter der Absicherung."},
-    unter_box:  {t:"Unter der Box", rank:1, s:"Der Kurs ist unter die Box gefallen, die Absicherung hält. Die Korrektur läuft tiefer als die Konfluenz."},
+    im_bereich: {t:"Im Bereich", rank:0, s:"Der Kurs steht in der Box. Gestaffelt kaufen – je ein Drittel an Oberkante, Unterkante und über der Prüfmarke. Kein Stop."},
+    unter_box:  {t:"Unter der Box", rank:1, s:"Der Kurs ist unter die Box gefallen, die Prüfmarke hält. Hier liegt das dritte Drittel."},
     offen:      {t:"Offen", rank:2, s:"Die Box liegt unter dem Kurs. Hier wird gewartet – auch wenn es weit ist."},
     gelaufen:   {t:"Gelaufen", rank:3, s:"Die Box wurde erreicht, der Kurs steht jetzt deutlich darüber. Wer dort gekauft hat, hält; für einen Neueinstieg zu spät."},
-    gestoppt:   {t:"Absicherung ausgelöst", rank:4, s:"Wochenschluss unter der Absicherung: Die Box hat nicht gehalten. Die Zählung gilt formal bis zur harten Marke, praktisch wird sie neu geprüft."},
+    gestoppt:   {t:"Prüfmarke gebrochen", rank:4, s:"Wochenschluss unter der Prüfmarke: nichts nachkaufen, Zählung prüfen. Kein automatischer Verkauf – im Rückvergleich war Halten in drei von vier solchen Fällen besser."},
     verpasst:   {t:"Verpasst", rank:5, s:"Das Tief lag in der Box, der Anstieg läuft. Kein Einstieg mehr – zu spät ist schlechter als gar nicht."},
     ungueltig:  {t:"Ungültig", rank:6, s:"Wochenschluss unter der harten Marke. Die Box gilt nicht mehr; die Zählung wird neu geprüft."},
     nicht_bestimmbar: {t:"Keine Box", rank:7, s:"Für diesen Titel ist keine Box bestimmbar."},
@@ -436,7 +448,8 @@ details.fold .in{padding:0 12px 12px}
     const crv = risiko && chance != null ? chance / Math.abs(risiko) : null;
     const longZ = up ? (up.zonen||[]).findIndex(z => between(k, z)) : -1;
     const shortZ = dn ? (dn.zonen||[]).findIndex(z => between(k, z)) : -1;
-    return {k, box, marke, stop, status, abstand, puffer, breite, ziel1, leiter, sp, ref, risiko, chance, crv, longZ, shortZ, lt, lg, a, up, dn};
+    const sg = a.signal || null;
+    return {k, box, marke, stop, status, abstand, puffer, breite, ziel1, leiter, sp, ref, risiko, chance, crv, longZ, shortZ, lt, lg, a, up, dn, sg};
   }
 
   // ── Kopfzeile
@@ -449,6 +462,7 @@ details.fold .in{padding:0 12px 12px}
     const c = f => L.filter(f).length;
     $("#n-im").textContent = c(l => ["im_bereich","unter_box"].includes(l.status)) || "";
     $("#n-nah").textContent = c(l => l.status === "offen" && l.abstand != null && l.abstand <= NAH) || "";
+    $("#n-stark").textContent = c(l => l.sg && l.sg.stufe === "stark" && ["im_bereich","unter_box","offen"].includes(l.status)) || "";
     $("#n-offen").textContent = c(l => l.status === "offen") || "";
     $("#n-ohne").textContent = c(l => !["im_bereich","unter_box","offen"].includes(l.status)) || "";
     // Veraltete Kurse? Werktage seit dem letzten Kursdatum
@@ -490,13 +504,15 @@ details.fold .in{padding:0 12px 12px}
     const sp = L.sp.map(z => `<div class="sp" style="left:${X(z[1])};width:calc(${X(z[0])} - ${X(z[1])})"></div>`).join("");
     return `<div class="scale" aria-hidden="true"><div class="rail"></div>
       <div class="bx" style="left:${X(L.box[1])};width:calc(${X(L.box[0])} - ${X(L.box[1])})"></div>${sp}
-      ${L.stop != null && L.stop !== L.marke ? `<div class="so" style="left:${X(L.stop)}"></div><div class="lb" style="left:${X(L.stop)}">Stop</div>` : ''}
-      ${L.marke != null ? (fern ? `<div class="lb" style="left:0;top:-9px;transform:none;color:var(--dn)">← Marke ${fmt(L.marke)}</div>` : `<div class="mk" style="left:${X(L.marke)}"></div><div class="lb" style="left:${X(L.marke)}">${L.stop === L.marke ? 'Marke/Stop' : 'Marke'}</div>`) : ''}
+      ${L.stop != null && L.stop !== L.marke ? `<div class="so" style="left:${X(L.stop)}"></div><div class="lb" style="left:${X(L.stop)}">Prüfmarke</div>` : ''}
+      ${L.marke != null ? (fern ? `<div class="lb" style="left:0;top:-9px;transform:none;color:var(--dn)">← Marke ${fmt(L.marke)}</div>` : `<div class="mk" style="left:${X(L.marke)}"></div><div class="lb" style="left:${X(L.marke)}">${L.stop === L.marke ? 'Marke = Prüfmarke' : 'Marke'}</div>`) : ''}
       <div class="lb" style="left:calc((${X(L.box[0])} + ${X(L.box[1])}) / 2)">Box</div>
       <div class="kz" style="left:${X(L.k)}"></div><div class="lb" style="left:${X(L.k)};top:-9px;color:var(--text)">Kurs</div></div>`;
   }
 
-  const crBlock = L => L.box && L.risiko != null ? `<div class="cr"><div><div class="k">Risiko bis Stop</div><div class="v bad">${pct(L.risiko)}</div></div><div><div class="k">Ziel 1</div><div class="v ok">${pct(L.chance)}</div></div><div><div class="k">Chance/Risiko</div><div class="v">${L.crv!=null?L.crv.toFixed(1).replace(".",","):"–"}</div></div></div>` : "";
+  const SGT = {stark: "Signal stark", mittel: "Signal mittel", schwach: "Signal schwach", vorlaeufig: "Signal offen"};
+  const sigChip = L => L.sg ? `<span class="sig ${L.sg.stufe}">${SGT[L.sg.stufe] || "Signal"} · ${L.sg.qualitaet}/4</span>` : "";
+  const staffelZeile = L => !(L.sg && L.sg.stufen) ? "" : `<div class="cr">${L.sg.stufen.map((t, i) => `<div class="${t.am ? "ja" : ""}"><div class="k">${i + 1}. Drittel${t.am ? " ✓" : ""}</div><div class="v mono">${fmt(t.kurs)}</div></div>`).join("")}</div>`;
 
   function boxBlock(L, compact) {
     const st = ST[L.status] || ST.offen;
@@ -506,17 +522,19 @@ details.fold .in{padding:0 12px 12px}
     let l2 = "";
     if (L.status === "im_bereich") l2 = `<span>Kurs <b>in der Box</b>${seit}</span><span>${L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
     else if (L.status === "offen") l2 = `<span>Kurs <b>${pc1(L.abstand)} über</b> der Box</span><span>${L.lg.box_beruehrt_am?`berührt ${dsh(L.lg.box_beruehrt_am)}`:L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
-    else if (L.status === "unter_box") l2 = `<span>Kurs <b>${pc1(-L.abstand)} unter</b> der Box</span><span>Stop <b class="mono">${fmt(L.stop)}</b></span>`;
+    else if (L.status === "unter_box") l2 = `<span>Kurs <b>${pc1(-L.abstand)} unter</b> der Box</span><span>Prüfmarke <b class="mono">${fmt(L.stop)}</b></span>`;
     else if (L.status === "gelaufen") l2 = `<span>Box erreicht ${dsh(L.lg.box_beruehrt_am)}</span><span>Kurs <b>${pc1(L.abstand)} darüber</b></span>`;
     else if (L.status === "gestoppt") l2 = `<span>Wochenschluss unter <b class="mono">${fmt(L.stop)}</b></span><span>${dsh(L.lg.zwischenmarke_gebrochen_am)}</span>`;
     else if (L.status === "verpasst") l2 = `<span>${L.lt.tief!=null?`Tief <b class="mono">${fmt(L.lt.tief)}</b>${L.lt.tief_am?` am ${dsh(L.lt.tief_am)}`:''}`:'Anstieg läuft'}</span><span>kein Einstieg</span>`;
     else if (L.status === "ungueltig") l2 = `<span>Marke <b class="mono">${fmt(L.marke)}</b> unterschritten</span><span>Zählung prüfen</span>`;
     else l2 = `<span>${esc(L.lt.begruendung||'').slice(0,80)}${(L.lt.begruendung||'').length>80?'…':''}</span>`;
     const chips = [];
+    if (L.sg && ["im_bereich","offen","unter_box"].includes(L.status)) chips.push(sigChip(L));
+    if (L.sg && L.sg.absturz_vorgeschichte && L.box) chips.push(`<span class="chip warn">spekulativ: früher schon über 75 % gefallen</span>`);
     if (L.lt.vorlaeufig && L.box) chips.push(`<span class="chip warn">vorläufig: in der Box endet nur ${esc((L.lt.welle||"").split(" ")[0])}</span>`);
     if (L.puffer != null && L.puffer < 3 && ["im_bereich","offen","unter_box"].includes(L.status)) chips.push(`<span class="chip warn">Puffer zur Marke nur ${pc1(L.puffer)}</span>`);
     const showCr = compact && ["im_bereich","offen","unter_box"].includes(L.status);
-    return `<div class="box ${L.status}"><div class="l1"><span class="stt">${st.t}</span>${rng}</div><div class="l2">${l2}</div>${eurline}${showCr?crBlock(L):""}${compact&&L.box&&MIT_BOX.includes(L.status)?scale(L):""}${chips.length?`<div class="chips">${chips.join("")}</div>`:''}</div>`;
+    return `<div class="box ${L.status}"><div class="l1"><span class="stt">${st.t}</span>${rng}</div><div class="l2">${l2}</div>${eurline}${showCr?staffelZeile(L):""}${compact&&L.box&&MIT_BOX.includes(L.status)?scale(L):""}${chips.length?`<div class="chips">${chips.join("")}</div>`:''}</div>`;
   }
 
   function card(a) {
@@ -543,8 +561,9 @@ details.fold .in{padding:0 12px 12px}
     if (FILTER === "nah") rows = rows.filter(r => r.L.status === "offen" && r.L.abstand != null && r.L.abstand <= NAH);
     if (FILTER === "offen") rows = rows.filter(r => r.L.status === "offen");
     if (FILTER === "ohne") rows = rows.filter(r => !["im_bereich","unter_box","offen"].includes(r.L.status));
-    rows.sort((x, y) => ((ST[x.L.status]||ST.offen).rank - (ST[y.L.status]||ST.offen).rank) || (Math.abs(x.L.abstand ?? 999) - Math.abs(y.L.abstand ?? 999)) || y.a.datum.localeCompare(x.a.datum));
-    const lbl = {alle:"", im_bereich:"in der Box", nah:`höchstens ${NAH} % über der Box`, offen:"mit offener Box", ohne:"ohne Einstieg"}[FILTER];
+    if (FILTER === "stark") rows = rows.filter(r => r.L.sg && r.L.sg.stufe === "stark" && ["im_bereich","unter_box","offen"].includes(r.L.status));
+    rows.sort((x, y) => ((ST[x.L.status]||ST.offen).rank - (ST[y.L.status]||ST.offen).rank) || ((y.L.sg ? y.L.sg.qualitaet : -1) - (x.L.sg ? x.L.sg.qualitaet : -1)) || (Math.abs(x.L.abstand ?? 999) - Math.abs(y.L.abstand ?? 999)) || y.a.datum.localeCompare(x.a.datum));
+    const lbl = {alle:"", im_bereich:"in der Box", stark:"mit starkem Signal", nah:`höchstens ${NAH} % über der Box`, offen:"mit offener Box", ohne:"ohne Einstieg"}[FILTER];
     $("#count").textContent = SUCHE ? `${rows.length} Treffer` : (FILTER === "alle" ? "Sortiert: erst in der Box, dann nach Nähe zur Box" : `${rows.length} Titel ${lbl}`);
     $("#list").innerHTML = rows.length ? rows.map(r => card(r.a)).join("") : `<div class="empty">${SUCHE ? "Kein Titel passt zur Suche." : `Derzeit steht kein Titel ${lbl}.`}</div>`;
   }
@@ -583,7 +602,9 @@ details.fold .in{padding:0 12px 12px}
 
   function stateLine(a, p, st) {
     if (!st || st.status === "wartet") return `Bereich seit ${dat(a.datum)} noch nicht berührt.`;
-    let l = `Eingestiegen <b>${dsh(st.eingestiegen_am)}</b> zu <b class="mono">${geld(st.einstieg_kurs, a)}</b>`;
+    let l = st.tranchen ? `Gekauft <b>${st.tranchen.length} von ${st.tranchen_geplant || 3} Dritteln</b> (ab ${dsh(st.eingestiegen_am)}) · Einstand <b class="mono">${geld(st.einstieg_kurs, a)}</b>`
+                        : `Eingestiegen <b>${dsh(st.eingestiegen_am)}</b> zu <b class="mono">${geld(st.einstieg_kurs, a)}</b>`;
+    if (st.pruefmarke_gebrochen_am) l += ` · <span class="bad">Prüfmarke gebrochen ${dsh(st.pruefmarke_gebrochen_am)}</span>`;
     const e = v => v != null && wg(a) !== "EUR" ? ` <span style="color:var(--muted)">(in Euro ${pnlTxt(v)})</span>` : "";
     if (st.status === "tp") l += ` · Ziel <b>${dsh(st.ergebnis_am)}</b> zu <b class="mono">${geld(st.ausstieg_kurs, a)}</b> · ${pnlTxt(st.pnl_pct)}${e(st.pnl_eur_pct)}${p.typ==="lte"?` · weiter gehalten: ${pnlTxt(st.pnl_aktuell_pct)}${e(st.pnl_aktuell_eur_pct)}`:''}`;
     else if (st.status === "sl") l += ` · Stop <b>${dsh(st.ergebnis_am)}</b> zu <b class="mono">${geld(st.ausstieg_kurs, a)}</b> · ${pnlTxt(st.pnl_pct)}${e(st.pnl_eur_pct)}`;
@@ -599,11 +620,11 @@ details.fold .in{padding:0 12px 12px}
     const label = p.typ === "lte" ? "Long-term Entry · kaufen und halten" : `Bereich ${esc(p.name||"")} · ${p.richtung==="long"?"Long":"Short"}`;
     const res = st ? `<span class="st ${st.status}">${STL[st.status]}</span>` : `<span class="st wartet">noch nicht geprüft</span>`;
     return `<div class="pos ${p.richtung} ${p.typ==="lte"?"lte-pos":""}"><div class="hd"><span class="t">${p.richtung==="long"?"▲":"▼"} ${label}</span>${res}</div>
-      <div class="g"><div><div class="k">Einstieg · ${esc(wg(a))}</div><div class="v mono">${lo===hi?fmt(lo):`${fmt(hi)} – ${fmt(lo)}`}</div>${eur(lo,a)!=null&&wg(a)!=="EUR"?`<div class="k" style="margin-top:4px">in Euro (zero)</div><div class="v mono" style="color:var(--acc)">${lo===hi?fmt(eur(lo,a)):`${fmt(eur(hi,a))} – ${fmt(eur(lo,a))}`}</div>`:''}</div>
-      <div><div class="k">Stop · ${esc(wg(a))}</div><div class="v mono">${fmt(p.stop)}</div>${p.stop_formal!=null?`<div class="k" style="margin-top:4px">Marke</div><div class="v mono" style="color:var(--muted)">${fmt(p.stop_formal)}</div>`:''}</div>
+      <div class="g"><div><div class="k">${p.staffel ? "Staffel" : "Einstieg"} · ${esc(wg(a))}</div><div class="v mono">${p.staffel ? p.staffel.map(fmt).join("<br>") : lo===hi?fmt(lo):`${fmt(hi)} – ${fmt(lo)}`}</div>${eur(lo,a)!=null&&wg(a)!=="EUR"?`<div class="k" style="margin-top:4px">in Euro (zero)</div><div class="v mono" style="color:var(--acc)">${p.staffel ? p.staffel.map(v => fmt(eur(v,a))).join("<br>") : lo===hi?fmt(eur(lo,a)):`${fmt(eur(hi,a))} – ${fmt(eur(lo,a))}`}</div>`:''}</div>
+      <div><div class="k">${p.stop_basis === "pruefmarke" ? "Prüfmarke" : "Stop"} · ${esc(wg(a))}</div><div class="v mono">${fmt(p.stop)}</div>${p.stop_basis === "pruefmarke" ? `<div class="k" style="margin-top:4px;text-transform:none;letter-spacing:0">kein Verkauf</div>` : ""}</div>
       <div><div class="k">${p.typ==="lte"?"Ziel 1":"Take-Profit"} · ${esc(wg(a))}</div><div class="v mono">${fmt(p.take_profit)}</div></div></div>
       <div class="r">${stateLine(a, p, st)}</div>
-      <div class="r">${p.typ==="lte"?"Ziel 1 ist die Messgröße des Journals, nicht der Ausstieg. ":""}Geplantes R <b>${rgep!=null?rgep.toFixed(2).replace('.',','):'–'}</b> · Stop auf ${p.stop_basis==="intraday"?"Intraday":"Wochenschluss"}basis${p.hinweis?` · ${esc(p.hinweis)}`:''}</div></div>`;
+      <div class="r">${p.typ==="lte"?"Ziel 1 ist die Messgröße des Journals, nicht der Ausstieg; gehalten wird über Jahre. Eine Prüfmarke löst keinen Verkauf aus.":`Geplantes R <b>${rgep!=null?rgep.toFixed(2).replace('.',','):'–'}</b> · Stop auf ${p.stop_basis==="intraday"?"Intraday":"Wochenschluss"}basis`}${p.nur_statistik?' · <span class="bad">nur Statistik – Short-Bereiche verloren im Rückvergleich im Mittel 0,3 R je Trade</span>':''}</div></div>`;
   }
 
   // Wie hängen Box und wahrscheinlicheres Szenario zusammen? Die Box ist das Ziel der Korrektur –
@@ -621,12 +642,33 @@ details.fold .in{padding:0 12px 12px}
   }
 
   function staffelung(L) {
-    if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status)) return "";
-    const mitte = L.sp.length ? (L.sp[0][0] + L.sp[0][1]) / 2 : (L.box[0] + L.box[1]) / 2;
-    const st = [[L.box[0], "Oberkante"], [mitte, L.sp.length ? "Mitte Kern" : "Mitte"], [L.box[1], "Unterkante"]];
+    if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status) || !(L.sg && L.sg.stufen)) return "";
     const e = v => eur(v, L.a);
-    return `<div class="stf"><div class="k">Staffelung · je ein Drittel (rechnerisch)</div><table>${st.map(([v, t]) => `<tr><td>${t}</td><td class="n mono">${geld(v, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(v)!=null&&wg(L.a)!=="EUR"?fmt(e(v))+" €":""}</td></tr>`).join("")}</table>
-      <div class="note" style="font-size:12px;margin-top:4px">Gleichmäßige Aufteilung der Box${L.sp.length?" mit Gewicht auf dem Kern":""}. Euro-Werte zum ${fxTxt(L.a)} – sie verschieben sich mit dem Wechselkurs.</div></div>`;
+    const t = L.sg.stufen;
+    const nam = t[2].kurs >= L.box[1] * 0.999 ? ["Oberkante der Box", "Mitte der Box", "Unterkante der Box"] : ["Oberkante der Box", "Unterkante der Box", "über der Prüfmarke"];
+    const schnitt = t.reduce((x, y) => x + y.kurs, 0) / t.length;
+    return `<div class="stf"><div class="k">Staffelplan · je ein Drittel · kein Stop</div><table>${t.map((x, i) => `<tr><td>${i + 1}. ${nam[i]}${x.am ? ` <span class="ok">✓ ${dsh(x.am)}</span>` : ""}</td><td class="n mono">${geld(x.kurs, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(x.kurs)!=null&&wg(L.a)!=="EUR"?fmt(e(x.kurs))+" €":""}</td></tr>`).join("")}
+      <tr><td style="color:var(--muted)">Einstand, wenn alle drei gefüllt</td><td class="n mono">${geld(schnitt, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(schnitt)!=null&&wg(L.a)!=="EUR"?fmt(e(schnitt))+" €":""}</td></tr></table>
+      <div class="note" style="font-size:12px;margin-top:4px">Im Rückvergleich (182 Titel, 1986–2026) war dieser Plan die zuverlässigste Variante: 76 % der Fälle nach drei Jahren im Plus, gegenüber 70 % beim vollen Kauf an der Oberkante. Das dritte Drittel wird oft nicht gefüllt – dann bleibt es Reserve. Euro-Werte zum ${fxTxt(L.a)}.</div></div>`;
+  }
+
+  function signalDetail(L) {
+    if (!L.sg) return "";
+    const b = L.sg.bedingungen || {};
+    const TXT = {markt: "Marktweiter Abverkauf (S&P 500 unter seiner 40-Wochen-Linie)", schnell: "Schnelle Korrektur: höchstens 26 Wochen vom Hoch bis in die Box",
+                 struktur: "Gesunde Struktur: neues Haupthoch, höheres Haupttief", faktor: "Impuls nicht überdehnt: Hoch unter dem Vierfachen des Ursprungs"};
+    const ic = v => v === true ? '<span class="ok">✓</span>' : v === false ? '<span class="bad">✗</span>' : '<span style="color:var(--muted)">offen</span>';
+    const klasse = L.sg.stufe === "stark" ? "stark (3-4 von 4)" : L.sg.stufe === "mittel" ? "mittel (2 von 4)" : "schwach (0-1 von 4)";
+    const bt = BT && BT.plan_nach_qualitaet ? BT.plan_nach_qualitaet["Box 78,6-88,7 %"] : null;
+    const zeileBt = (nm) => { const x = bt && bt[nm]; if (!x || !x["3 Jahre"]) return ""; const d = x["3 Jahre"], f = x["5 Jahre"];
+      return `<tr${nm === klasse ? ' style="font-weight:600"' : ''}><td>${nm.split(" (")[0]}</td><td class="n">${d.positiv} %</td><td class="n">${d.median > 0 ? "+" : ""}${String(d.median).replace(".", ",")} %</td><td class="n">${f ? f.positiv + " %" : "–"}</td><td class="n">${d.verlust40} %</td></tr>`; };
+    return `<div class="sgd ${L.sg.stufe}"><div class="k">Signalqualität · ${SGT[L.sg.stufe]} (${L.sg.qualitaet} von 4)</div>
+      ${Object.keys(TXT).map(k => `<div class="bd">${ic(b[k])}<span>${TXT[k]}</span></div>`).join("")}
+      ${L.sg.absturz_vorgeschichte ? `<div class="bd"><span class="bad">!</span><span>Titel ist in den fünf Jahren vor dem Hoch schon einmal über 75 % gefallen – im Rückvergleich doppelt so viele Totalausfälle.</span></div>` : ""}
+      <div class="note" style="font-size:12px;margin:6px 0 4px">Bezug: ${esc(L.sg.bezug)} · ${L.sg.wochen_seit_hoch} Wochen seit dem Hoch.</div>
+      ${bt ? `<table class="bt"><tr><th>Rückvergleich</th><th class="n">3 J. im Plus</th><th class="n">Median</th><th class="n">5 J. im Plus</th><th class="n">&lt; −40 %</th></tr>${["stark (3-4 von 4)", "mittel (2 von 4)", "schwach (0-1 von 4)"].map(zeileBt).join("")}</table>
+      <div class="note" style="font-size:11.5px;margin-top:4px">Staffelplan ohne Stop, ${BT.umfang ? BT.umfang.titel : ""} Titel, ${BT.umfang ? BT.umfang.jahre : ""}. Vergangene Häufigkeiten, keine Zusage für diesen Titel; Titel, die ganz vom Markt verschwanden, fehlen in den Daten.</div>` : ""}
+    </div>`;
   }
 
   function lteDetail(L) {
@@ -635,7 +677,7 @@ details.fold .in{padding:0 12px 12px}
     if (L.lt.welle && L.box) kv.push(["In der Box endet", `<b>${esc(L.lt.welle)}</b>`]);
     if (L.box) kv.push(["Kurs zur Box", ["im_bereich"].includes(L.status) ? "in der Box" : L.abstand < 0 ? `${pc1(-L.abstand)} unter der Unterkante` : `${pc1(L.abstand)} über der Oberkante`]);
     if (L.sp.length) kv.push(["Kern (Schwerpunkt)", L.sp.map(z => `<span class="mono">${fmt(z[0])} – ${fmt(z[1])}</span>`).join(" · ")]);
-    if (L.stop != null && L.box) kv.push(["Stop (Absicherung)", `<span class="mono">${geld(L.stop, L.a)}</span> · Wochenschluss${L.lt.zwischenmarke!=null&&L.lt.zwischenmarke_quelle?`<div class="note" style="font-size:12px">${esc(L.lt.zwischenmarke_quelle)}</div>`:''}`]);
+    if (L.stop != null && L.box) kv.push(["Prüfmarke (kein Stop)", `<span class="mono">${geld(L.stop, L.a)}</span> · Wochenschluss darunter: nichts nachkaufen, Zählung prüfen${L.lt.zwischenmarke!=null&&L.lt.zwischenmarke_quelle?`<div class="note" style="font-size:12px">${esc(L.lt.zwischenmarke_quelle)}</div>`:''}`]);
     if (L.marke != null) kv.push(["Harte Marke (Zählung)", `<span class="mono">${geld(L.marke, L.a)}</span>${L.puffer!=null?` · <span class="${L.puffer<3?'bad':''}">Puffer ${pc1(L.puffer)}</span>`:''}`]);
     if (L.ziel1 != null && L.box) kv.push(["Ziel 1 · Leiter bis", `<span class="mono">${geld(L.ziel1, L.a)}</span>${L.leiter!=null?` · <span class="mono">${fmt(L.leiter)}</span>`:''}`]);
     if (L.breite != null) kv.push(["Breite der Box", `${pc1(L.breite)}${L.breite>25?' – breit, deshalb zählt der Kern':''}`]);
@@ -652,7 +694,7 @@ details.fold .in{padding:0 12px 12px}
       ${L.box&&eur(L.box[0],L.a)!=null&&wg(L.a)!=="EUR"?`<div class="range mono" style="font-size:20px;color:var(--acc)">≈ ${fmt(eur(L.box[0],L.a))} – ${fmt(eur(L.box[1],L.a))} €</div><div class="sub" style="font-size:12.5px">Einstieg in Euro, wie bei finanzen.net zero (gettex) – ${fxTxt(L.a)}; ohne Spread.</div>`:''}
       <div class="sub">${st.s}</div>
       ${L.box&&MIT_BOX.includes(L.status)?scale(L):''}
-      ${["im_bereich","offen","unter_box"].includes(L.status)?crBlock(L):''}
+      ${["im_bereich","offen","unter_box"].includes(L.status)?signalDetail(L):''}
       ${kv.length?`<div class="kv">${kv.map(([k,v])=>`<span class="k">${k}</span><span>${v}</span>`).join("")}</div>`:''}
       ${warn.map(w=>`<div class="warn-line">${w}</div>`).join("")}
       ${staffelung(L)}
@@ -697,6 +739,8 @@ details.fold .in{padding:0 12px 12px}
     if (mode === "detail") { art = "w"; cs = kd.w.filter(c => c[0] >= heute - 7 * 70); }
     else {
       let t0 = wl.length ? Math.min(...wl.map(w => w.t)) - 110 : heute - 365 * 5;
+      const imp0 = (a.lte || {}).impuls;
+      if (imp0) t0 = Math.min(t0, tage(imp0.von_datum) - 90);
       t0 = Math.min(t0, heute - 365 * 3);
       if ((heute - t0) / 365 <= 6.5 && kd.w.length && kd.w[0][0] <= t0 + 14) { art = "w"; cs = kd.w.filter(c => c[0] >= t0); }
       else { art = "m"; cs = kd.m.filter(c => c[0] >= t0); }
@@ -756,6 +800,18 @@ details.fold .in{padding:0 12px 12px}
     zUp.forEach(z => { const m = (z[0] + z[1]) / 2; A(`<rect x="${xh.toFixed(1)}" y="${y(Math.max(...z)).toFixed(1)}" width="${(X1 - xh).toFixed(1)}" height="${Math.max(1.2, y(Math.min(...z)) - y(Math.max(...z))).toFixed(1)}" fill="${C.grn}" fill-opacity=".14"/>`); A(`<line x1="${xh.toFixed(1)}" y1="${y(Math.min(...z)).toFixed(1)}" x2="${X1}" y2="${y(Math.min(...z)).toFixed(1)}" stroke="${C.grn}" stroke-width="1.1"/>`); badges.push([y(m), "▲ " + fmtC(Math.min(...z)), C.grn, "#000"]); });
     zDn.forEach(z => { const b = bedingt(z), m = (z[0] + z[1]) / 2; A(`<line x1="${xh.toFixed(1)}" y1="${y(Math.max(...z)).toFixed(1)}" x2="${X1}" y2="${y(Math.max(...z)).toFixed(1)}" stroke="${b ? C.redDim : C.red}" stroke-width="1.1"${b ? ' stroke-dasharray="3,3"' : ''}/>`); badges.push([y(m), "▼ " + fmtC(Math.max(...z)), b ? C.redDim : C.red, "#fff"]); });
     A(`</g>`);
+    // Fibonacci-Retracements des tragenden Impulses, beschriftet wie bei HKCM: "78.60% (56.51)"
+    if (L.sg && L.sg.fib && box) {
+      const hx = Math.max(X0, x(tage(L.sg.impuls.bis_datum)));
+      for (const [pz, wert] of Object.entries(L.sg.fib)) {
+        if (wert < P0 || wert > P1 || pz === "38.2") continue;
+        const yy = y(wert);
+        A(`<line x1="${hx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${X1}" y2="${yy.toFixed(1)}" stroke="#bdbdbd" stroke-opacity=".55" stroke-width=".8" stroke-dasharray="5,4"/>`);
+        const fl = `${Number(pz).toFixed(2)}% (${fmtC(wert)})`, fw_ = fl.length * 5.1 * f;
+        A(`<rect x="${(X1 - 6 - fw_).toFixed(1)}" y="${(yy - 12 * f).toFixed(1)}" width="${(fw_ + 4).toFixed(1)}" height="${(11 * f).toFixed(1)}" fill="#000" fill-opacity=".72"/>`);
+        T(X1 - 4, yy - 3, fl, 8.5, C.grn, "end", 700);
+      }
+    }
     // Box
     if (box) {
       const yb = y(box[0]), yu = y(box[1]);
@@ -768,7 +824,7 @@ details.fold .in{padding:0 12px 12px}
       T(lx, ly, lab, 10.5, "#fff", "start", 700);
       const e0 = eur(box[0], a), e1 = eur(box[1], a);
       if (e0 != null && wg(a) !== "EUR") T(lx, ly + 11.5 * f, `≈ €${fmtC(e0)} – €${fmtC(e1)} (zero)`, 9, "#9ad5ff", "start", 400, true);
-      if (L.stop != null && L.stop !== L.marke && L.stop >= P0) { A(`<line x1="${xs.toFixed(1)}" y1="${y(L.stop).toFixed(1)}" x2="${X1}" y2="${y(L.stop).toFixed(1)}" stroke="${C.or}" stroke-width="1.3" stroke-dasharray="2,3"/>`); badges.push([y(L.stop), "Stop " + fmtC(L.stop), C.or, "#000"]); }
+      if (L.stop != null && L.stop !== L.marke && L.stop >= P0) { A(`<line x1="${xs.toFixed(1)}" y1="${y(L.stop).toFixed(1)}" x2="${X1}" y2="${y(L.stop).toFixed(1)}" stroke="${C.or}" stroke-width="1.3" stroke-dasharray="2,3"/>`); badges.push([y(L.stop), "Prüfm. " + fmtC(L.stop), C.or, "#000"]); }
       if (L.marke != null) {
         if (!fernMarke && L.marke >= P0) { A(`<line x1="${X0}" y1="${y(L.marke).toFixed(1)}" x2="${X1}" y2="${y(L.marke).toFixed(1)}" stroke="${C.red}" stroke-width="1.3" stroke-dasharray="8,4"/>`); T(X0 + 4, y(L.marke) + 11 * f, `Marke ${fmtC(L.marke)}` + (L.stop === L.marke ? " = Stop" : ""), 9, C.red, "start", 700, true); }
         else badges.push([Y1 + 40, "Marke " + fmtC(L.marke) + " ↓", C.red, "#fff"]);
@@ -1018,9 +1074,30 @@ details.fold .in{padding:0 12px 12px}
       <div class="l3">${stateLine(a, p, st.status === "wartet" ? null : st)}</div></div>`;
   }
 
+  let BT = null;
+  function backtestBlock() {
+    if (!BT) return "";
+    const t = BT.plan_nach_qualitaet && BT.plan_nach_qualitaet["Box 78,6-88,7 %"];
+    const pc = v => v == null ? "–" : (v > 0 ? "+" : "") + String(v).replace(".", ",") + " %";
+    const zeile = (nm, x) => x ? `<tr><td>${nm}</td><td class="n">${x.n}</td><td class="n">${x.positiv} %</td><td class="n">${pc(x.median)}</td><td class="n">${pc(x.pa)}</td><td class="n">${x.verlust40} %</td></tr>` : "";
+    const kopf = `<tr><th>Variante</th><th class="n">n</th><th class="n">im Plus</th><th class="n">Median</th><th class="n">p. a.</th><th class="n">&lt; −40 %</th></tr>`;
+    return `<div class="pb"><h2>Rückvergleich der Methode · ${BT.umfang.titel} Titel · ${BT.umfang.jahre}</h2>
+      <div class="note" style="margin-bottom:8px">Die Box-Regel mechanisch nachgebaut und über 25 Jahre angewendet, nur mit den Daten des jeweiligen Tages. Werte nach drei Jahren Haltedauer, ohne Dividenden und Gebühren.</div>
+      <h2 style="margin-top:6px">Staffelplan nach Signalqualität</h2>
+      <div style="overflow-x:auto"><table>${kopf}${t ? ["stark (3-4 von 4)", "mittel (2 von 4)", "schwach (0-1 von 4)", "alle"].map(nm => zeile(nm, t[nm] && t[nm]["3 Jahre"])).join("") : ""}</table></div>
+      <h2 style="margin-top:12px">Einstiegsarten im Vergleich</h2>
+      <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.vergleich || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
+      <h2 style="margin-top:12px">Stop oder halten?</h2>
+      <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.stops || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
+      <h2 style="margin-top:12px">Zu spät eingestiegen?</h2>
+      <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.nachzuegler || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
+      <div class="note" style="margin-top:8px">Lesart: Die vier Bedingungen der Signalqualität trennen gute von schwachen Einstiegen deutlich. Stops unter der Box haben mehr gekostet als geschützt. Ein Nachzügler-Einstieg bis 30 % über dem Boxtief war kaum schlechter. Titel, die ganz vom Markt verschwanden, fehlen in den Daten – die absoluten Werte sind deshalb eher zu gut, die Vergleiche untereinander nicht.</div></div>`;
+  }
+
   function renderBilanz() {
     const grp = {lte: [], trade: []};
-    for (const a of DATA) (a.positionen||[]).forEach((p,i) => { const st = standVon(a,i) || {status:"wartet"}; grp[p.typ==="lte"?"lte":"trade"].push({a, p, st}); });
+    const grp2 = {short: []};
+    for (const a of DATA) (a.positionen||[]).forEach((p,i) => { const st = standVon(a,i) || {status:"wartet"}; if (p.nur_statistik) grp2.short.push({a, p, st}); else grp[p.typ==="lte"?"lte":"trade"].push({a, p, st}); });
     const mean = xs => xs.length ? xs.reduce((x,y)=>x+y,0)/xs.length : null;
     const block = (titel, rows, hinweis) => {
       const offen = rows.filter(r=>r.st.status==="offen"), zu = rows.filter(r=>r.st.status==="tp"||r.st.status==="sl"), wartet = rows.filter(r=>r.st.status==="wartet");
@@ -1045,7 +1122,9 @@ details.fold .in{padding:0 12px 12px}
         ${hinweis?`<div class="note" style="margin-top:8px">${hinweis}</div>`:''}</div>`;
     };
     $("#pnl").innerHTML = block("Long-term Entry · kaufen und halten", grp.lte, "„Ziel“ ist bei der Box nur der Messpunkt Ziel 1 – gehalten wird weiter; die Spalte zeigt dann zusätzlich den Stand seit Einstieg. Einstieg bei Berührung der Oberkante, Stop auf Wochenschluss unter der Absicherung.")
-      + block("Trades · kurzfristige Bereiche", grp.trade, "Einstieg bei Berührung des Bereichs, Ziel bei Berührung, Stop auf Wochenschlussbasis. Rechnerisch, ohne Gebühren und Spread; Euro nur für Long-Positionen.");
+      + block("Trades · kurzfristige Long-Bereiche", grp.trade, "Einstieg bei Berührung des Bereichs, Ziel bei Berührung, Stop auf Wochenschlussbasis. Rechnerisch, ohne Gebühren und Spread.")
+      + block("Short-Bereiche · nur Statistik", grp2.short, "Werden nicht mehr empfohlen: Im Rückvergleich (5.326 Trades) kam der Stop in 61 % der Fälle zuerst, im Mittel −0,3 R je Trade. Sie bleiben hier, damit die Bilanz vollständig ist.")
+      + backtestBlock();
   }
 
   function renderStatLte() {
@@ -1135,6 +1214,7 @@ details.fold .in{padding:0 12px 12px}
       const r = await fetch("data.json", {cache: "no-store"});
       const d = await r.json();
       META = d; DATA = (d.analysen || []).filter(a => a && a.id && a.szenarien && a.quelle !== "backtest");
+      try { const rb = await fetch("backtest.json", {cache: "no-store"}); if (rb.ok) BT = await rb.json(); } catch (e) {}
       WUENSCHE = d.wuensche || []; FX = d.fx || {};
       for (const k in KURSE) delete KURSE[k];
       const fxl = Object.entries(FX).map(([w,f]) => `EUR/${w} ${f.je_euro.toLocaleString("de-DE",{minimumFractionDigits:4,maximumFractionDigits:4})}`).join(" · ");
