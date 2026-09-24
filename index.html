@@ -407,6 +407,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
   </nav>
   <div class="such"><span class="ic">⌕</span><input id="suche" type="search" placeholder="Titel oder Kürzel suchen …" autocomplete="off" aria-label="Suche"><button class="x" id="suche-x" hidden aria-label="Suche löschen">×</button></div>
   <section class="view nur-lang" id="v-titel">
+    <div id="lset"></div>
     <div id="neu"></div>
     <div class="seg" id="filters" role="group" aria-label="Filter">
       <button aria-pressed="true" data-f="alle">Alle</button>
@@ -720,6 +721,15 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     return "";
   }
 
+  let BUDGET = (() => { try { return Number(localStorage.getItem("wj-budget")) || 1000; } catch (e) { return 1000; } })();
+  function renderLangSet() {
+    const el = $("#lset"); if (!el) return;
+    el.innerHTML = `<details class="tset" id="lset-d"><summary><span>Budget je Titel <b>${fmt(BUDGET)} €</b> – daraus Betrag und Stückzahl je Stufe des Kaufplans</span><span>ändern</span></summary>
+      <div class="in"><div class="r"><label>Budget je Titel in €<input id="l-budget" type="number" inputmode="decimal" min="50" step="50" value="${BUDGET}"></label></div>
+      <div class="hint">Der Kaufplan verteilt dieses Budget: bei starkem Signal alles an der Oberkante, sonst 50 · 30 · 20 %. Nicht gefüllte Stufen bleiben als Bargeld liegen. Der Wert bleibt nur auf diesem Gerät.</div></div></details>`;
+    el.querySelector("#l-budget").addEventListener("change", e => { const v = Number(e.target.value); if (v > 0) { BUDGET = v; try { localStorage.setItem("wj-budget", String(v)); } catch (x) {} } const o = $("#lset-d").open; renderLangSet(); $("#lset-d").open = o; });
+  }
+
   function staffelung(L) {
     if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status) || !(L.sg && L.sg.stufen)) return "";
     const e = v => eur(v, L.a);
@@ -730,7 +740,8 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const stark = pl[0] === 1;
     const bt = BT && BT.kaufplan_budget ? BT.kaufplan_budget[L.sg.stufe === "stark" ? "stark" : L.sg.stufe === "mittel" ? "mittel" : "schwach"] : null;
     const bz = (nm) => { const x = bt && bt[nm] && bt[nm]["5 Jahre"]; return x ? `${nm}: ${x.positiv} % im Plus, Median ${x.median > 0 ? "+" : ""}${String(x.median).replace(".", ",")} %` : ""; };
-    return `<div class="stf"><div class="k">Kaufplan · ${stark ? "Signal stark: alles an der Oberkante" : "gestaffelt 50 · 30 · 20 %"} · kein Stop</div><table>${aktiv.map(x => `<tr><td>${Math.round(x.g * 100)} % · ${x.n}${x.am ? ` <span class="ok">✓ ${dsh(x.am)}</span>` : ""}</td><td class="n mono">${geld(x.kurs, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(x.kurs)!=null&&wg(L.a)!=="EUR"?fmt(e(x.kurs))+" €":""}</td></tr>`).join("")}
+    const stk = x => { const pe = e(x.kurs); if (pe == null || !(pe > 0)) return ""; const betrag = BUDGET * x.g; const n = Math.floor(betrag / pe); return `<div style="font-size:11.5px;color:var(--muted);font-family:'IBM Plex Sans',sans-serif">${fmt(betrag)} € · ${n} Stück</div>`; };
+    return `<div class="stf"><div class="k">Kaufplan · ${stark ? "Signal stark: alles an der Oberkante" : "gestaffelt 50 · 30 · 20 %"} · kein Stop · Budget ${fmt(BUDGET)} €</div><table>${aktiv.map(x => `<tr><td>${Math.round(x.g * 100)} % · ${x.n}${x.am ? ` <span class="ok">✓ ${dsh(x.am)}</span>` : ""}${stk(x)}</td><td class="n mono">${geld(x.kurs, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(x.kurs)!=null&&wg(L.a)!=="EUR"?fmt(e(x.kurs))+" €":""}</td></tr>`).join("")}
       ${aktiv.length > 1 ? `<tr><td style="color:var(--muted)">Einstand, wenn alle Stufen gefüllt</td><td class="n mono">${geld(einstand, L.a)}</td><td class="n mono" style="color:var(--acc)">${e(einstand)!=null&&wg(L.a)!=="EUR"?fmt(e(einstand))+" €":""}</td></tr>` : ""}</table>
       <div class="note" style="font-size:12px;margin-top:4px">${stark
         ? `Bei starkem Signal brachte der volle Kauf an der Oberkante im Rückvergleich den höchsten Ertrag auf das ganze Budget (${bz("alles an der Oberkante")}; Staffel: ${bz("50/30/20").replace("50/30/20: ", "")}). Die tieferen Stufen wurden oft nie erreicht – das Geld hätte dann gelegen.`
@@ -1371,7 +1382,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const nah = x.abstand_pct <= 3;
     return `<button class="tc ${nah ? "nah" : ""}" data-t="${esc(x.id)}">
       <div class="row"><div><span class="name">${esc(x.name)}</span><span class="sym mono">${esc(x.sym)}</span></div><div class="px mono">${tgeld(x.kurs, x.waehrung)}</div></div>
-      <div class="l3" style="margin-top:2px"><span>Kurs <b>${pc1(x.abstand_pct)}</b> über dem Limit${x.neu ? ` · <b style="color:var(--up)">neu</b>` : ""}</span>${stufeChip(x)}</div>
+      <div class="l3" style="margin-top:2px"><span>Kurs <b>${pc1(x.abstand_pct)}</b> über dem Limit${x.neu ? ` · <b style="color:var(--up)">neu</b>` : x.geaendert ? ` · <b style="color:var(--warn)">Limit geändert (vorher ${fmt(x.limit_gestern)})</b>` : ""}</span>${stufeChip(x)}</div>
       <div class="g"><div><div class="k">Kauflimit</div><div class="v mono">${fmt(x.limit)}</div>${x.limit_eur != null ? `<div class="e">${fmt(x.limit_eur)} €</div>` : ""}</div>
         <div><div class="k">Stop</div><div class="v mono">${fmt(x.stop)}</div><div class="e" style="color:var(--dn)">−${pc1(x.risiko_pct)}</div></div>
         <div><div class="k">Ziel</div><div class="v mono">${fmt(x.ziel)}</div><div class="e" style="color:var(--up)">+${pc1((x.ziel / x.limit - 1) * 100)}</div></div></div>
@@ -1412,19 +1423,28 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const offenLive = (TR.offen || []).filter(x => x.live && trifftT(x));
     const offenRueck = (TR.offen || []).filter(x => !x.live && trifftT(x));
     const sig = (TR.signale || []).filter(trifftT);
-    const frei = Math.max(0, ((TR.depot && TR.depot.max_pos) || 10) - (TR.offen || []).filter(x => x.live).length);
-    // Tagesplan: die besten Signale nahe am Kurs (höchstens 10 % über dem Limit), nach Erwartung
-    const kand = sig.filter(x => x.abstand_pct <= 10).sort((a, b) => (b.ev ?? -9) - (a.ev ?? -9));
-    const plan = kand.slice(0, Math.max(frei, 3));
-    const rest = sig.filter(x => !plan.includes(x));
+    const maxPos = (TR.depot && TR.depot.max_pos) || 10;
+    const frei = Math.max(0, maxPos - (TR.offen || []).filter(x => x.live).length);
+    // Tagesplan (im Rückvergleich geprüft, Belege W): Kauflimits für ALLE Signale, deren Kurs höchstens 5 % über dem Limit steht.
+    // Nur so viele Limits wie freie Plätze zu legen, kostete zwei Drittel des Ertrags - die meisten Limits werden nie gefüllt.
+    const byEv = (a, b) => (b.ev ?? -9) - (a.ev ?? -9);
+    const plan = frei ? sig.filter(x => x.abstand_pct <= 5).sort(byEv) : [];
+    const bald = sig.filter(x => x.abstand_pct > 5 && x.abstand_pct <= 10).sort((a, b) => a.abstand_pct - b.abstand_pct);
+    const rest = sig.filter(x => !plan.includes(x) && !bald.includes(x));
     const neu = sig.filter(x => x.neu).length;
+    const anpassen = plan.filter(x => x.geaendert);
+    const streichen = (TR.entfallen || []).filter(trifftT);
+    const tp = TR.backtest && TR.backtest.tagesplan && TR.backtest.tagesplan["alle <= 5 %"];
     el.innerHTML = `${einstellungen()}
       <div class="tt"><div><div class="k">Kauflimits</div><div class="v">${sig.length}</div></div><div><div class="k">Offen (live)</div><div class="v" style="color:var(--acc)">${offenLive.length}</div></div><div><div class="k">Neu heute</div><div class="v" style="color:var(--up)">${neu}</div></div></div>
       ${offenLive.length ? `<div class="th2">Offene Trades<span>Stop und Ziel als Aufträge im Depot</span></div><div class="tl">${offenLive.map(offenCard).join("")}</div>` : ""}
-      <div class="th2">Tagesplan · Kauflimits für den nächsten Handelstag<span>${frei} von ${(TR.depot && TR.depot.max_pos) || 10} Plätzen frei</span></div>
-      <div class="count" style="margin-top:-2px">Die besten Signale nahe am Kurs, nach erwarteter Rendite. Ein Kauflimit gilt einen Tag und wird täglich neu gerechnet – solange der Kurs neue Hochs macht, wandert es mit nach oben.</div>
-      <div class="tl">${plan.length ? plan.map(sigCard).join("") : `<div class="empty">Derzeit kein gutes Signal nahe am Kurs.</div>`}</div>
-      ${rest.length ? `<details class="fold" style="margin:14px 16px 0"><summary>Weitere Kauflimits · ${rest.length}</summary><div class="in"><div class="tl" style="padding:0">${rest.map(sigCard).join("")}</div></div></details>` : ""}
+      ${streichen.length ? `<div class="th2">Aufträge streichen<span>seit dem letzten Lauf entfallen</span></div><div class="tl">${streichen.map(x => `<div class="trr sl" style="cursor:default"><span class="n">${esc(x.name)} <span class="sym mono" style="font-size:12px;color:var(--muted);font-weight:400">${esc(x.sym)}</span></span><span class="r mono">${fmt(x.limit)}</span><span class="s" style="grid-column:1/-1">${esc(x.grund)}</span></div>`).join("")}</div>` : ""}
+      <div class="th2">Tagesplan · Kauflimits für den nächsten Handelstag<span>${frei} von ${maxPos} Plätzen frei</span></div>
+      <div class="count" style="margin-top:-2px">${frei ? `Für <b>alle</b> Signale, deren Kurs höchstens 5 % über dem Limit steht, ein Kauflimit legen – nicht nur für so viele, wie Plätze frei sind: Die meisten Limits werden nie gefüllt. Sobald ${maxPos} Positionen offen sind, die übrigen Limits streichen.${tp ? ` Im Rückvergleich brachte genau dieses Vorgehen ${pct(tp["1995-2011"].cagr)} p. a. (1995–2011) und ${pct(tp["2012-2026"].cagr)} p. a. (2012–2026), typisch ${tp["2012-2026"].auftraege_median} Aufträge am Abend.` : ""} Das Limit wird täglich neu gerechnet – macht der Kurs neue Hochs, wandert es mit.` : `<b>Depot voll</b> (${maxPos} Positionen offen): keine neuen Kauflimits legen und die bestehenden streichen, bis ein Trade endet.`}</div>
+      ${anpassen.length ? `<div class="alarm" style="margin-top:0">Limit geändert – Auftrag anpassen: ${anpassen.map(x => `<b>${esc(x.name)}</b> ${fmt(x.limit_gestern)} → ${fmt(x.limit)}`).join(" · ")}</div>` : ""}
+      <div class="tl">${plan.length ? plan.map(sigCard).join("") : frei ? `<div class="empty">Heute steht kein Signal höchstens 5 % über seinem Limit.</div>` : ""}</div>
+      ${bald.length ? `<details class="fold" style="margin:14px 16px 0"><summary>Bald im Plan · 5–10 % über dem Limit · ${bald.length}</summary><div class="in"><div class="note" style="margin-bottom:8px">Noch kein Auftrag nötig. Fällt der Kurs weiter, rücken sie in den Tagesplan.</div><div class="tl" style="padding:0">${bald.map(sigCard).join("")}</div></div></details>` : ""}
+      ${rest.length ? `<details class="fold" style="margin:12px 16px 0"><summary>Weitere Kauflimits · mehr als 10 % entfernt · ${rest.length}</summary><div class="in"><div class="tl" style="padding:0">${rest.map(sigCard).join("")}</div></div></details>` : ""}
       ${offenRueck.length ? `<details class="fold" style="margin:12px 16px 0"><summary>Laufende Trades vor dem Start · ${offenRueck.length}</summary><div class="in"><div class="note" style="margin-bottom:8px">Diese Trades hätte die Regel vor dem Start des Live-Journals (${dat(TR.start)}) eröffnet. Sie laufen noch; für einen Einstieg jetzt gelten sie nicht – der Kurs ist ein anderer.</div><div class="tl" style="padding:0">${offenRueck.map(offenCard).join("")}</div></div></details>` : ""}`;
     const ts = $("#tset");
     if (ts) {
@@ -1493,14 +1513,19 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const jmax = Math.max(...jr.map(([, v]) => Math.abs(v)), 1);
     el.innerHTML = `<div class="count">Die Regel mechanisch über ${bt.titel} Titel und ${bt.jahre} nachgerechnet – nur mit den Kursen, die am jeweiligen Tag vorlagen. Kosten 0,1 % je Kauf und Verkauf, ohne Steuern und Dividenden.</div>
       <div class="pb"><h2>So wird gehandelt</h2><div class="note" style="color:var(--text)">${esc(TR.regel.text)}</div>
-        <div class="note" style="margin-top:6px">Depot: ${String((TR.depot.risiko || 0.005) * 100).replace(".", ",")} % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen gleichzeitig, je höchstens ${Math.round(TR.depot.max_anteil * 100)} % des Depots. Gibt es mehr Signale als Plätze, zuerst die mit der höheren Erwartung.</div></div>
-      <div class="pb"><h2>Depot im Rückvergleich</h2>
-        <div class="tiles"><div><div class="k">2012–2026</div><div class="v" style="color:var(--up)">${pct(b.cagr)} p. a.</div><div class="s">größter Rückgang ${b.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a., ${b.sp500_dd} %</div></div>
-        <div><div class="k">1995–2011</div><div class="v" style="color:var(--up)">${pct(a.cagr)} p. a.</div><div class="s">größter Rückgang ${a.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a., ${a.sp500_dd} %</div></div></div>
-        ${depotKurve(bt)}
-        <div class="note">2000–2026: ${pct(g.cagr)} p. a., größter Rückgang ${g.max_dd} %. Logarithmische Skala, Vielfaches des Startkapitals.</div>
-        <h2 style="margin-top:12px">Jahr für Jahr</h2>
-        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px">${jr.map(([y, v]) => `<div style="background:${v >= 0 ? "var(--up-soft)" : "var(--dn-soft)"};border-radius:6px;padding:4px 6px;font-size:12px"><div style="color:var(--muted)">${y}</div><b class="${v >= 0 ? "ok" : "bad"}">${v > 0 ? "+" : ""}${v} %</b></div>`).join("")}</div></div>
+        <div class="note" style="margin-top:6px">Depot: ${String((TR.depot.risiko || 0.005) * 100).replace(".", ",")} % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen gleichzeitig, je höchstens ${Math.round(TR.depot.max_anteil * 100)} % des Depots. Jeden Abend ein Kauflimit für jedes Signal, dessen Kurs höchstens 5 % über dem Limit steht; nach dem Kauf sofort Stop-Loss und Verkaufslimit legen; ist das Depot voll, die übrigen Limits streichen.</div></div>
+      ${(() => { const tp = bt.tagesplan && bt.tagesplan["alle <= 5 %"]; if (!tp) return ""; const x1 = tp["1995-2011"], x2 = tp["2012-2026"], x3 = tp["2000-2026"];
+        return `<div class="pb"><h2>So wie die App es empfiehlt · Tagesplan</h2>
+        <div class="tiles"><div><div class="k">2012–2026</div><div class="v" style="color:var(--up)">${pct(x2.cagr)} p. a.</div><div class="s">größter Rückgang ${x2.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a.</div></div>
+        <div><div class="k">1995–2011</div><div class="v" style="color:var(--up)">${pct(x1.cagr)} p. a.</div><div class="s">größter Rückgang ${x1.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a.</div></div></div>
+        ${depotKurve({kurve: tp.kurve_sp || bt.kurve})}
+        <div class="note">Jeden Abend Kauflimits für alle Signale höchstens 5 % über dem Limit (typisch ${x2.auftraege_median}, an manchen Abenden bis ${x2.auftraege_p90}), 0,5 % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen. 2000–2026: ${pct(x3.cagr)} p. a., größter Rückgang ${x3.max_dd} %. Das ist die ehrliche Erwartung – die Werte darunter setzen voraus, dass für jedes Signal ein Limit liegt.</div>
+        ${tp.jahresrenditen ? `<h2 style="margin-top:12px">Jahr für Jahr</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px">${Object.entries(tp.jahresrenditen).map(([y, v]) => `<div style="background:${v >= 0 ? "var(--up-soft)" : "var(--dn-soft)"};border-radius:6px;padding:4px 6px;font-size:12px"><div style="color:var(--muted)">${y}</div><b class="${v >= 0 ? "ok" : "bad"}">${v > 0 ? "+" : ""}${v} %</b></div>`).join("")}</div>` : ""}</div>`; })()}
+      <div class="pb"><h2>Obergrenze: für jedes Signal ein Limit</h2>
+        <div class="tiles"><div><div class="k">2012–2026</div><div class="v">${pct(b.cagr)} p. a.</div><div class="s">größter Rückgang ${b.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a., ${b.sp500_dd} %</div></div>
+        <div><div class="k">1995–2011</div><div class="v">${pct(a.cagr)} p. a.</div><div class="s">größter Rückgang ${a.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a., ${a.sp500_dd} %</div></div></div>
+        <div class="note">2000–2026: ${pct(g.cagr)} p. a., größter Rückgang ${g.max_dd} %. Praktisch kaum machbar (an manchen Abenden 40 und mehr Aufträge) – zeigt, was die Regel selbst hergibt.</div>
+</div>
       <div class="pb"><h2>Einzelne Trades</h2><div style="overflow-x:auto"><table><tr><th>Zeitraum</th><th class="n">n</th><th class="n">Treffer</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
         ${zeile("alle", bt.regel)}${zeile("bis 2011", bt.bis2011)}${zeile("ab 2012", bt.ab2012)}${zeile("Zufall zum Vergleich", bt.zufall)}</table></div>
         <div class="note" style="margin-top:6px">Ein Gewinner brachte im Median <b>${pct(bt.regel.gewinn_median)}</b>, ein Verlierer kostete <b>${pct(bt.regel.verlust_median)}</b>. Nur gut jeder vierte Trade erreicht das Ziel – der Ertrag kommt aus dem Verhältnis von großem Gewinn zu kleinem Verlust. „Zufall“: gleiche Titel, gleicher Stop- und Zielabstand, aber ein zufälliger Einstiegstag – dort blieb fast nichts übrig. Der Vorteil liegt also im Einstieg am 78,6-%-Rücksetzer, nicht im allgemeinen Anstieg der Aktien.</div></div>
@@ -1729,7 +1754,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
       const fxl = Object.entries(FX).map(([w,f]) => `EUR/${w} ${f.je_euro.toLocaleString("de-DE",{minimumFractionDigits:4,maximumFractionDigits:4})}`).join(" · ");
       $("#s-fx").hidden = !fxl; $("#s-fxv").textContent = fxl;
       $("#s-stand").textContent = d.stand ? new Date(d.stand).toLocaleString("de-DE", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) : "–";
-      renderStatus(); renderNeu(); renderList(); renderStatLte(); renderStat(); renderQueue(); renderReviews(); renderBilanz();
+      renderLangSet(); renderStatus(); renderNeu(); renderList(); renderStatLte(); renderStat(); renderQueue(); renderReviews(); renderBilanz();
       renderTrading(); renderTradingReviews(); renderTradingBilanz();
       if (manuell) toast("Aktualisiert – Stand " + (MODUS === "trade" ? $("#t-stand").textContent : $("#s-stand").textContent));
       const [h, hm] = decodeURIComponent(location.hash.slice(1)).split(":");
