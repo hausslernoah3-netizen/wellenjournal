@@ -388,7 +388,7 @@ details.fold .in{padding:0 12px 12px}
     im_bereich: {t:"Im Bereich", rank:0, s:"Der Kurs steht in der Box. Gestaffelt kaufen – je ein Drittel an Oberkante, Unterkante und über der Prüfmarke. Kein Stop."},
     unter_box:  {t:"Unter der Box", rank:1, s:"Der Kurs ist unter die Box gefallen, die Prüfmarke hält. Hier liegt das dritte Drittel."},
     offen:      {t:"Offen", rank:2, s:"Die Box liegt unter dem Kurs. Hier wird gewartet – auch wenn es weit ist."},
-    gelaufen:   {t:"Gelaufen", rank:3, s:"Die Box wurde erreicht, der Kurs steht jetzt deutlich darüber. Wer dort gekauft hat, hält; für einen Neueinstieg zu spät."},
+    gelaufen:   {t:"Gelaufen", rank:3, s:"Die Box wurde erreicht, der Kurs steht jetzt deutlich darüber. Wer dort gekauft hat, hält. Ein Neueinstieg geht nur noch als Nachzügler: bis 30 % über dem Tief in der Box und nur bei starkem oder mittlerem Signal."},
     gestoppt:   {t:"Prüfmarke gebrochen", rank:4, s:"Wochenschluss unter der Prüfmarke: nichts nachkaufen, Zählung prüfen. Kein automatischer Verkauf – im Rückvergleich war Halten in drei von vier solchen Fällen besser."},
     verpasst:   {t:"Verpasst", rank:5, s:"Das Tief lag in der Box, der Anstieg läuft. Kein Einstieg mehr – zu spät ist schlechter als gar nicht."},
     ungueltig:  {t:"Ungültig", rank:6, s:"Wochenschluss unter der harten Marke. Die Box gilt nicht mehr; die Zählung wird neu geprüft."},
@@ -532,7 +532,7 @@ details.fold .in{padding:0 12px 12px}
     if (L.status === "im_bereich") l2 = `<span>Kurs <b>in der Box</b>${seit}${zp ? ` · Ziel 1 vor Prüfmarke <b>${zp.ziel1} %</b>` : ""}</span><span>${L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
     else if (L.status === "offen") l2 = `<span>Kurs <b>${pc1(L.abstand)} über</b> der Box${L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.box_vor_ziel1 ? ` · Box zuerst <b>${L.a.wahrscheinlichkeit.box_vor_ziel1.box} %</b>` : ""}</span><span>${L.lg.box_beruehrt_am?`berührt ${dsh(L.lg.box_beruehrt_am)}`:L.sp.length?`Kern <b class="mono">${fmt(L.sp[0][0])}–${fmt(L.sp[0][1])}</b>`:''}</span>`;
     else if (L.status === "unter_box") l2 = `<span>Kurs <b>${pc1(-L.abstand)} unter</b> der Box</span><span>Prüfmarke <b class="mono">${fmt(L.stop)}</b></span>`;
-    else if (L.status === "gelaufen") l2 = `<span>Box erreicht ${dsh(L.lg.box_beruehrt_am)}</span><span>Kurs <b>${pc1(L.abstand)} darüber</b></span>`;
+    else if (L.status === "gelaufen") { const nz = L.sg && L.sg.nachzuegler; l2 = `<span>Box erreicht ${dsh(L.lg.box_beruehrt_am)} · Kurs <b>${pc1(L.abstand)} darüber</b></span><span>${nz ? (nz.urteil === "ja" ? `<b class="ok">Nachkauf bis <span class="mono">${fmt(nz.grenze)}</span></b>` : nz.urteil === "zu_spaet" ? "Nachkauf zu spät" : nz.urteil === "nicht_empfohlen" ? "kein Nachkauf (Signal)" : "kein Nachkauf") : ""}</span>`; }
     else if (L.status === "gestoppt") l2 = `<span>Wochenschluss unter <b class="mono">${fmt(L.stop)}</b></span><span>${dsh(L.lg.zwischenmarke_gebrochen_am)}</span>`;
     else if (L.status === "verpasst") l2 = `<span>${L.lt.tief!=null?`Tief <b class="mono">${fmt(L.lt.tief)}</b>${L.lt.tief_am?` am ${dsh(L.lt.tief_am)}`:''}`:'Anstieg läuft'}</span><span>kein Einstieg</span>`;
     else if (L.status === "ungueltig") l2 = `<span>Marke <b class="mono">${fmt(L.marke)}</b> unterschritten</span><span>Zählung prüfen</span>`;
@@ -705,6 +705,12 @@ details.fold .in{padding:0 12px 12px}
     const zpd = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.ziel1_vor_pruefmarke;
     if (zpd && ["im_bereich","unter_box"].includes(L.status)) kv.push(["Ziel 1 vor Prüfmarke", `<b>${zpd.ziel1} %</b> <span style="color:var(--muted)">– so oft kam in vergleichbaren Lagen erst Ziel 1 (<span class="mono">${fmt(zpd.ziel1_kurs)}</span>), bevor die Prüfmarke (<span class="mono">${fmt(zpd.pruefmarke_kurs)}</span>) berührt wurde${zpd.keins_3j ? `; ${zpd.keins_3j} % keins in drei Jahren` : ""}</span>`]);
     if (bv && L.status === "offen") kv.push(["Box vor Ziel 1", `<b>${bv.box} %</b> <span style="color:var(--muted)">– so oft wurde in vergleichbaren Lagen erst die Box erreicht; ${bv.ziel1} % zuerst Ziel 1${bv.keins_3j ? `, ${bv.keins_3j} % keins in drei Jahren` : ""}</span>`]);
+    const nzd = L.sg && L.sg.nachzuegler;
+    if (nzd && (nzd.ueber_box || L.status === "gelaufen") && ["offen","gelaufen"].includes(L.status)) {
+      const ns = BT && BT.nachzuegler_signal && BT.nachzuegler_signal[L.sg.stufe === "stark" ? "stark" : L.sg.stufe === "mittel" ? "mittel" : "schwach"];
+      const beleg = ns && ns.spaet_3j && ns.spaet_5j ? ` Rückvergleich für Signal ${L.sg.stufe === "stark" || L.sg.stufe === "mittel" ? L.sg.stufe : "schwach"}: ${ns.spaet_3j.positiv} % im Plus nach drei Jahren, ${ns.spaet_5j.positiv} % nach fünf (Kauf in der Box: ${ns.box_3j.positiv} % / ${ns.box_5j.positiv} %).` : "";
+      kv.push(["Nachzügler-Einstieg", `${nzd.urteil === "ja" ? `<b class="ok">möglich bis <span class="mono">${geld(nzd.grenze, L.a)}</span></b>` : `<b class="bad">${nzd.urteil === "zu_spaet" ? "zu spät" : nzd.urteil === "nicht_empfohlen" ? "nicht empfohlen" : "nein"}</b>`} <span style="color:var(--muted)">– Kurs ${pc1(nzd.abstand_tief_pct)} über dem Tief in der Box (<span class="mono">${fmt(nzd.tief)}</span>). Wer die Box verpasst hat, darf bis 30 % über diesem Tief noch kaufen, solange die Prüfmarke hält und das Signal stark oder mittel ist – dann traf der späte Kauf so oft wie der Kauf in der Box.${beleg}</span>`]);
+    }
     if (L.lg.box_beruehrt_am) kv.push(["Box berührt", `${dat(L.lg.box_beruehrt_am)}${L.lg.tiefster_seit_beruehrung!=null?` · tiefster Kurs seither <span class="mono">${fmt(L.lg.tiefster_seit_beruehrung)}</span>`:''}`]);
     const warn = [];
     if (L.lt.vorlaeufig && L.box) warn.push(esc(L.lt.vorlaeufig_text || "In der Box endet nur eine Teilwelle; die Korrektur kann danach tiefer laufen."));
@@ -1189,7 +1195,8 @@ details.fold .in{padding:0 12px 12px}
       <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.stops || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
       <h2 style="margin-top:12px">Zu spät eingestiegen?</h2>
       <div style="overflow-x:auto"><table>${kopf}${Object.entries(BT.nachzuegler || {}).map(([nm, x]) => zeile(nm, x)).join("")}</table></div>
-      <div class="note" style="margin-top:8px">Lesart: Die vier Bedingungen der Signalqualität trennen gute von schwachen Einstiegen deutlich. Stops unter der Box haben mehr gekostet als geschützt. Ein Nachzügler-Einstieg bis 30 % über dem Boxtief war kaum schlechter. Titel, die ganz vom Markt verschwanden, fehlen in den Daten – die absoluten Werte sind deshalb eher zu gut, die Vergleiche untereinander nicht.</div></div>`;
+      ${BT.nachzuegler_signal ? `<div style="overflow-x:auto;margin-top:8px"><table><tr><th>Signal · 3 / 5 Jahre</th><th class="n">in der Box</th><th class="n">Nachzügler</th></tr>${Object.entries(BT.nachzuegler_signal).map(([sg, x]) => `<tr><td>${sg}</td><td class="n">${x.box_3j.positiv} % / ${x.box_5j.positiv} %</td><td class="n">${x.spaet_3j.positiv} % / ${x.spaet_5j.positiv} %</td></tr>`).join("")}</table></div><div class="note" style="margin-top:4px">Anteil im Plus. Nachzügler = Kauf 10, 20 oder 30 % über dem Tief in der Box. Daraus die Regel: Nachkauf nur bei starkem oder mittlerem Signal.</div>` : ""}
+      <div class="note" style="margin-top:8px">Lesart: Die vier Bedingungen der Signalqualität trennen gute von schwachen Einstiegen deutlich. Stops unter der Box haben mehr gekostet als geschützt. Ein Nachzügler-Einstieg bis 30 % über dem Boxtief war nicht schlechter – bei schwachem Signal aber so unsicher wie der Kauf in der Box selbst. Titel, die ganz vom Markt verschwanden, fehlen in den Daten – die absoluten Werte sind deshalb eher zu gut, die Vergleiche untereinander nicht.</div></div>`;
   }
 
   function renderBilanz() {
