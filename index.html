@@ -1179,6 +1179,11 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
       <div class="head"><div><div class="big">${esc(a.instrument)}</div><div class="meta mono">${esc(a.symbol)} · Analyse vom ${dat(a.datum)}</div></div>
         <div class="px"><div class="k">${a.kurs_aktuell!=null?`Kurs vom ${dsh(a.kurs_aktuell_am)}`:'Kurs zum Stichtag'}</div><div class="v mono">${geld(L.k, a)}</div>${a.kurs_aktuell_eur!=null&&wg(a)!=="EUR"?`<div class="k mono" style="text-transform:none;letter-spacing:0">≈ ${fmt(a.kurs_aktuell_eur)} €</div>`:''}${chg!=null?`<div class="k" style="text-transform:none;letter-spacing:0">${pnlTxt(chg)} seit Analyse</div>`:''}</div></div>
       <section class="blk">${lteDetail(L)}</section>
+      ${(() => { if (!TR) return ""; const ts = (TR.signale || []).find(x => x.sym === a.symbol), to = (TR.offen || []).find(x => x.sym === a.symbol && x.live);
+        const x = to || ts; if (!x) return "";
+        return `<section class="blk"><button class="tc ${to ? "offen" : ts.abstand_pct <= 5 ? "nah" : ""}" data-tlink="${esc(x.id)}"><div class="row"><span class="name" style="font-size:15px">Trading-Signal zu diesem Titel</span>${stufeChip(x)}</div>
+          <div class="l3" style="margin-top:4px"><span>${to ? `Trade offen seit ${dsh(to.ein_am)} · ${pnlTxt(to.pnl_pct)}` : `Kauflimit <b class="mono">${fmt(ts.limit)}</b> · Stop ${fmt(ts.stop)} · Ziel ${fmt(ts.ziel)} · Kurs ${pc1(ts.abstand_pct)} darüber`}</span><span>→</span></div>
+          <div class="note" style="font-size:12px;margin-top:4px">Kurzfristig, unabhängig von der Box: eigene Regel mit Stop und Ziel (Trading-Teil).</div></button></section>`; })()}
       <section class="blk"><div class="tog"><button data-m="detail">Detail</button><button data-m="uebersicht">Übersicht${(a.wellen||[]).length?' · Zählung':''}</button><span class="sp"></span><button id="voll">Vollbild ⤢</button></div>
         <div class="cv" id="cv"></div>
         <div class="note" style="margin-top:6px">Täglich aktueller Chart. Blau: die Box${L.sp.length?' (heller: Kern)':''}. Orange: Prüfmarke. Rot gestrichelt: harte Marke. Roter Pfad in die Box mit der Wahrscheinlichkeit der Wende, grün von dort zur Zielleiter; rot gestrichelt: die Zone bricht. Tippen für Vollbild.</div></section>
@@ -1210,6 +1215,8 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const setMode = m => { CHARTMODE = m; el.querySelectorAll(".tog [data-m]").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m ? "true" : "false")); zeichne(cv, a, m); };
     el.querySelector(".tog").addEventListener("click", e => { const b = e.target.closest("[data-m]"); if (b) setMode(b.dataset.m); });
     el.querySelector("#voll").addEventListener("click", () => vollbild(a));
+    const tl_ = el.querySelector("[data-tlink]");
+    if (tl_) tl_.addEventListener("click", () => openTrade(tl_.dataset.tlink));
     cv.addEventListener("click", () => vollbild(a));
     setMode(CHARTMODE);
     const onResize = () => zeichne(cv, a, CHARTMODE);
@@ -1686,7 +1693,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     </div></div>`;
     document.body.appendChild(el); document.body.style.overflow = "hidden";
     const cv = el.querySelector("#tcv");
-    const draw = async () => { cv.innerHTML = `<div class="lade">Lade Kurse …</div>`; try { const kd = await tkurse(x.sym); if (!kd) { cv.innerHTML = `<div class="lade">Keine Kursdaten.</div>`; return; } const W = Math.round(cv.clientWidth || 360), H = Math.round(Math.min(W * 0.9, 440)); cv.innerHTML = tchartSVG(x, kd, W, H); } catch (e) { cv.innerHTML = `<div class="lade">Chart nicht darstellbar.</div>`; } };
+    const draw = async () => { if (x.chart === false) { cv.innerHTML = `<div class="lade">Chart nur für Signale nahe am Limit, offene und kürzlich geschlossene Live-Trades.</div>`; return; } cv.innerHTML = `<div class="lade">Lade Kurse …</div>`; try { const kd = await tkurse(x.sym); if (!kd) { cv.innerHTML = `<div class="lade">Keine Kursdaten.</div>`; return; } const W = Math.round(cv.clientWidth || 360), H = Math.round(Math.min(W * 0.9, 440)); cv.innerHTML = tchartSVG(x, kd, W, H); } catch (e) { cv.innerHTML = `<div class="lade">Chart nicht darstellbar.</div>`; } };
     draw();
     window.addEventListener("resize", draw);
     const close = () => { window.removeEventListener("resize", draw); el.remove(); document.body.style.overflow = ""; if (location.hash) history.replaceState(null, "", location.pathname); };
