@@ -1,6 +1,6 @@
 // Wellenjournal - Service Worker
 // Netz zuerst (die App aendert sich taeglich), Cache nur als Rueckfall ohne Verbindung.
-const CACHE = "wj-v11";
+const CACHE = "wj-v12";
 const HUELLE = ["./", "./index.html", "./manifest.webmanifest", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", e => {

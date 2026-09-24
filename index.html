@@ -326,22 +326,87 @@ details.fold .in{padding:0 12px 12px}
 .pos .g .v{font-weight:500;margin-top:1px}
 .pos .r{font-size:12px;color:var(--muted);margin-top:6px}
 .pos .r b{color:var(--text);font-weight:500}
+/* Modus Langfrist / Trading */
+.modus{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin:2px 16px 10px}
+.modus button{border:1.5px solid var(--line);background:var(--surf);border-radius:14px;padding:10px 12px;cursor:pointer;min-height:58px;text-align:left;display:flex;flex-direction:column;gap:1px}
+.modus button b{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:18px;font-weight:600;color:var(--text)}
+.modus button span{font-size:11.5px;color:var(--muted);line-height:1.25}
+.modus button[aria-pressed="true"][data-m="lang"]{border-color:var(--acc);background:var(--acc-soft)}
+.modus button[aria-pressed="true"][data-m="trade"]{border-color:var(--up);background:var(--up-soft)}
+.modus button:focus-visible{outline:2px solid var(--acc);outline-offset:2px}
+body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none !important}
+/* Trading */
+.tset{margin:0 16px 12px;background:var(--surf);border:1px solid var(--line);border-radius:12px}
+.tset summary{list-style:none;cursor:pointer;padding:10px 12px;font-size:13px;color:var(--muted);display:flex;justify-content:space-between;gap:8px;min-height:44px;align-items:center}
+.tset summary::-webkit-details-marker{display:none}
+.tset summary b{color:var(--text);font-weight:600}
+.tset .in{padding:0 12px 12px}
+.tset .r{display:flex;gap:10px;flex-wrap:wrap}
+.tset label{font-size:12px;color:var(--muted);display:flex;flex-direction:column;gap:3px;flex:1;min-width:120px}
+.tset input{border:1px solid var(--line);background:var(--bg);color:var(--text);border-radius:9px;padding:8px 10px;font:inherit;font-size:16px;min-height:42px;width:100%}
+.tset .hint{font-size:12px;color:var(--muted);margin-top:8px;line-height:1.45}
+.tt{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin:0 16px 12px}
+.tt div{background:var(--surf);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+.tt .k{font-size:10.5px;text-transform:uppercase;letter-spacing:.05em;color:var(--muted)}
+.tt .v{font-size:21px;font-weight:600;margin-top:1px}
+.th2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin:16px 16px 8px;display:flex;justify-content:space-between;gap:8px;align-items:baseline}
+.th2 span{text-transform:none;letter-spacing:0;font-weight:400;font-size:12px}
+.tc{background:var(--surf);border:1px solid var(--line);border-radius:14px;padding:12px 14px;cursor:pointer;text-align:left;width:100%;display:block;font:inherit;color:inherit}
+.tc:active{background:var(--surf2)}
+.tc.offen{border-color:var(--acc);box-shadow:0 0 0 1px var(--acc) inset}
+.tc.nah{border-color:var(--up);box-shadow:0 0 0 1px var(--up) inset}
+.tc .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.tc .name{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:18px;font-weight:600}
+.tc .sym{font-size:12px;color:var(--muted);margin-left:6px}
+.tc .px{font-size:16px;font-weight:500;white-space:nowrap}
+.tc .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.tc .g div{background:var(--surf2);border-radius:8px;padding:5px 8px}
+.tc .g .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.tc .g .v{font-size:13.5px;font-weight:600;font-variant-numeric:tabular-nums}
+.tc .g .e{font-size:11px;color:var(--acc);font-variant-numeric:tabular-nums}
+.tc .l3{display:flex;justify-content:space-between;gap:8px;font-size:12px;color:var(--muted);margin-top:8px;flex-wrap:wrap}
+.tc .l3 b{color:var(--text);font-weight:600}
+.pbar{display:flex;height:5px;border-radius:3px;overflow:hidden;margin-top:8px;background:var(--dn-soft)}
+.pbar i{display:block;height:100%;background:var(--up)}
+.tl{display:flex;flex-direction:column;gap:8px;padding:0 16px}
+.trr{display:grid;grid-template-columns:1fr auto;gap:2px 10px;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:9px 12px;cursor:pointer;text-align:left;width:100%;font:inherit;color:inherit}
+.trr .n{font-weight:600;font-family:"IBM Plex Sans Condensed",sans-serif;font-size:16px}
+.trr .s{font-size:12px;color:var(--muted)}
+.trr .r{text-align:right;font-weight:600;font-variant-numeric:tabular-nums}
+.trr.tp{border-left:4px solid var(--up)}.trr.sl{border-left:4px solid var(--dn)}.trr.zeit,.trr.be,.trr.zeit_teil{border-left:4px solid var(--warn)}
+.kurve{border:1px solid var(--line);border-radius:12px;background:#000;padding:6px;margin-bottom:8px}
+.kurve svg{display:block;width:100%;height:auto}
+.auftrag{background:var(--surf2);border-radius:10px;padding:8px 12px;margin-top:10px;font-size:14px}
+.auftrag .z{display:flex;justify-content:space-between;gap:8px;padding:6px 0;border-top:1px solid var(--line)}
+.auftrag .z:first-child{border-top:0}
+.auftrag .z b{font-variant-numeric:tabular-nums}
+.auftrag .z .s{font-size:12px;color:var(--muted)}
 @media (prefers-reduced-motion:no-preference){.sheet{animation:up .18s ease-out}@keyframes up{from{transform:translateY(12px);opacity:.6}to{transform:none;opacity:1}}}
 </style>
 </head>
-<body>
+<body data-mode="lang">
 <div class="phone">
-  <header class="top"><div><h1>Wellenjournal</h1><div class="sub">Long-term Entry: wo kaufen, um über Jahre zu halten</div></div><button class="reload" id="reload" aria-label="Neu laden" title="Neu laden">↻</button></header>
-  <div class="stand"><span><b id="s-n">–</b> Titel · <b id="s-r">–</b> Reviews</span><span>Kurse <b id="s-k">–</b> · Stand <b id="s-stand">–</b></span></div>
+  <header class="top"><div><h1>Wellenjournal</h1><div class="sub" id="sub-kopf">Long-term Entry: wo kaufen, um über Jahre zu halten</div></div><button class="reload" id="reload" aria-label="Neu laden" title="Neu laden">↻</button></header>
+  <nav class="modus" id="modus" aria-label="Bereich">
+    <button data-m="lang" aria-pressed="true"><b>Langfrist</b><span>Boxen kaufen, über Jahre halten</span></button>
+    <button data-m="trade" aria-pressed="false"><b>Trading</b><span>Tage bis Wochen, mit Stop und Ziel</span></button>
+  </nav>
+  <div class="stand nur-lang"><span><b id="s-n">–</b> Titel · <b id="s-r">–</b> Reviews</span><span>Kurse <b id="s-k">–</b> · Stand <b id="s-stand">–</b></span></div>
+  <div class="stand nur-trade"><span><b id="t-n">–</b> Titel täglich geprüft</span><span>Kurse <b id="t-k">–</b> · Stand <b id="t-stand">–</b></span></div>
   <div class="stand" id="s-fx" hidden style="padding-top:0"><span>Stop und Ziel in Chartwährung · Einstieg auch in Euro</span><span><b id="s-fxv"></b></span></div>
   <div class="alarm" id="alarm" hidden></div>
-  <nav class="tabs" id="tabs" aria-label="Seiten">
+  <nav class="tabs nur-lang" id="tabs" aria-label="Seiten">
     <button data-v="titel" aria-pressed="true">Titel</button>
     <button data-v="reviews" aria-pressed="false">Reviews</button>
     <button data-v="bilanz" aria-pressed="false">Bilanz</button>
   </nav>
+  <nav class="tabs nur-trade" id="ttabs" aria-label="Trading-Seiten">
+    <button data-v="t-signale" aria-pressed="true">Signale</button>
+    <button data-v="t-reviews" aria-pressed="false">Reviews</button>
+    <button data-v="t-bilanz" aria-pressed="false">Bilanz</button>
+  </nav>
   <div class="such"><span class="ic">⌕</span><input id="suche" type="search" placeholder="Titel oder Kürzel suchen …" autocomplete="off" aria-label="Suche"><button class="x" id="suche-x" hidden aria-label="Suche löschen">×</button></div>
-  <section class="view" id="v-titel">
+  <section class="view nur-lang" id="v-titel">
     <div id="neu"></div>
     <div class="seg" id="filters" role="group" aria-label="Filter">
       <button aria-pressed="true" data-f="alle">Alle</button>
@@ -355,20 +420,25 @@ details.fold .in{padding:0 12px 12px}
     <div class="list" id="list"><div class="empty">Lade Journal …</div></div>
     <div class="queue" id="queue" hidden></div>
   </section>
-  <section class="view" id="v-reviews" hidden>
-    <div class="count">Je Titel: das Prognosebild vom Analysetag, alle empfohlenen Positionen mit Einstieg, Stop und Ziel – und was daraus wurde.</div>
+  <section class="view nur-lang" id="v-reviews" hidden>
+    <div class="count">Je Titel: das Prognosebild vom Analysetag, die Box als Position und die Prüfpunkte nach 4, 12, 26, 52 und 104 Wochen.</div>
     <div id="rlist"></div>
   </section>
-  <section class="view" id="v-bilanz" hidden>
-    <div class="count">Long-term Entries und kurzfristige Trades getrennt: laufender Gewinn/Verlust der offenen, realisierter der geschlossenen Positionen – in Chartwährung und in Euro (mit dem Wechselkurs am Einstiegstag). Je Position gleich gewichtet.</div>
+  <section class="view nur-lang" id="v-bilanz" hidden>
+    <div class="count">Die Boxen als Positionen: laufender Gewinn/Verlust der offenen, Stand der erreichten – in Chartwährung und in Euro (mit dem Wechselkurs am Einstiegstag). Je Position gleich gewichtet.</div>
     <div id="pnl"></div>
     <div class="stat" id="stat-lte" hidden><h2>Bilanz der Box – in der Box gekauft, was kam danach?</h2><div id="stat-lte-body"></div></div>
-    <div class="stat" id="stat" hidden><h2>Nebenkennzahl · Take-Profit oder Stop zuerst</h2><div id="statbody"></div></div>
   </section>
-  <div class="foot">Kurse werden einmal täglich aktualisiert. Eine Box, die weit unter dem Kurs liegt, wird trotzdem gezeigt – dort wird gewartet. „Verpasst“ und „Gelaufen“ heißen: Das Tief lag in der Box, der Anstieg läuft – für einen Neueinstieg zu spät. Gekauft wird gestaffelt in drei Dritteln, ohne Stop; eine gebrochene Prüfmarke heißt: nichts nachkaufen, Zählung prüfen. Harte Marken gelten auf Wochenschluss. Alle Zonen sind Wahrscheinlichkeitsannahmen, keine Zusagen – technische Chartstudie im HKCM-Stil, keine Anlageberatung.</div>
+  <section class="view nur-trade" id="v-t-signale" hidden><div id="t-signale"><div class="empty">Lade Trading-Signale …</div></div></section>
+  <section class="view nur-trade" id="v-t-reviews" hidden><div id="t-reviews"></div></section>
+  <section class="view nur-trade" id="v-t-bilanz" hidden><div id="t-bilanz"></div>
+    <div class="stat" id="stat" hidden><h2>Bereiche aus den Analysen · bisherige Methode</h2><div id="statbody"></div></div>
+  </section>
+  <div class="foot nur-trade">Signale werden einmal täglich nach Börsenschluss neu gerechnet; ein Kauflimit gilt für den nächsten Handelstag. Stop und Ziel stehen in der Chartwährung – bei finanzen.net zero als Stop-Loss- und Limit-Verkaufsauftrag hinterlegen. Alle Wahrscheinlichkeiten sind Häufigkeiten aus dem Rückvergleich, keine Zusagen – keine Anlageberatung.</div>
+  <div class="foot nur-lang">Kurse werden einmal täglich aktualisiert. Eine Box, die weit unter dem Kurs liegt, wird trotzdem gezeigt – dort wird gewartet. „Gelaufen“: Das Tief lag in der Box, der Anstieg läuft – ein Nachkauf geht nur bis 30 % über dem Tief und nur bei starkem oder mittlerem Signal; „Verpasst“: darüber. Gekauft wird nach dem Kaufplan, ohne Stop; eine gebrochene Prüfmarke heißt: nichts nachkaufen, Zählung prüfen. Harte Marken gelten auf Wochenschluss. Alle Zonen sind Wahrscheinlichkeitsannahmen, keine Zusagen – technische Chartstudie im HKCM-Stil, keine Anlageberatung.</div>
 </div>
 
-<div class="reqbar"><form class="in" id="reqform" name="wunsch" method="POST" data-netlify="true" netlify-honeypot="firma" action="https://wellenjournal.netlify.app/">
+<div class="reqbar nur-lang"><form class="in" id="reqform" name="wunsch" method="POST" data-netlify="true" netlify-honeypot="firma" action="https://wellenjournal.netlify.app/">
   <input type="hidden" name="form-name" value="wunsch">
   <p hidden><label>Firma <input name="firma"></label></p>
   <input id="req" name="instrument" type="text" placeholder="Neue Analyse, z. B. Rheinmetall" autocomplete="off" aria-label="Instrument" enterkeyhint="send" required>
@@ -385,12 +455,12 @@ details.fold .in{padding:0 12px 12px}
   const CHECKPOINTS = [4, 12, 26, 52, 104];
   const NAH = 15;                                     // "nah an der Box": höchstens so viel Prozent über der Oberkante
   const ST = {
-    im_bereich: {t:"Im Bereich", rank:0, s:"Der Kurs steht in der Box. Gestaffelt kaufen – je ein Drittel an Oberkante, Unterkante und über der Prüfmarke. Kein Stop."},
-    unter_box:  {t:"Unter der Box", rank:1, s:"Der Kurs ist unter die Box gefallen, die Prüfmarke hält. Hier liegt das dritte Drittel."},
+    im_bereich: {t:"Im Bereich", rank:0, s:"Der Kurs steht in der Box. Nach dem Kaufplan kaufen: bei starkem Signal alles an der Oberkante, sonst 50 · 30 · 20 % an Oberkante, Unterkante und über der Prüfmarke. Kein Stop."},
+    unter_box:  {t:"Unter der Box", rank:1, s:"Der Kurs ist unter die Box gefallen, die Prüfmarke hält. Hier liegt die letzte Stufe des Kaufplans (20 % knapp über der Prüfmarke)."},
     offen:      {t:"Offen", rank:2, s:"Die Box liegt unter dem Kurs. Hier wird gewartet – auch wenn es weit ist."},
     gelaufen:   {t:"Gelaufen", rank:3, s:"Die Box wurde erreicht, der Kurs steht jetzt deutlich darüber. Wer dort gekauft hat, hält. Ein Neueinstieg geht nur noch als Nachzügler: bis 30 % über dem Tief in der Box und nur bei starkem oder mittlerem Signal."},
     gestoppt:   {t:"Prüfmarke gebrochen", rank:4, s:"Wochenschluss unter der Prüfmarke: nichts nachkaufen, Zählung prüfen. Kein automatischer Verkauf – im Rückvergleich war Halten in drei von vier solchen Fällen besser."},
-    verpasst:   {t:"Verpasst", rank:5, s:"Das Tief lag in der Box, der Anstieg läuft. Kein Einstieg mehr – zu spät ist schlechter als gar nicht."},
+    verpasst:   {t:"Verpasst", rank:5, s:"Das Tief lag in der Box, der Kurs steht mehr als 30 % darüber. Kein Einstieg mehr – auch nicht als Nachzügler."},
     ungueltig:  {t:"Ungültig", rank:6, s:"Wochenschluss unter der harten Marke. Die Box gilt nicht mehr; die Zählung wird neu geprüft."},
     nicht_bestimmbar: {t:"Keine Box", rank:7, s:"Für diesen Titel ist keine Box bestimmbar."},
   };
@@ -487,7 +557,8 @@ details.fold .in{padding:0 12px 12px}
       const v = a.lage_verlauf || [];
       v.forEach((x, i) => { if (i > 0 && x.seit >= g) ev.push({d: x.seit, a, t: `Box: ${(ST[v[i-1].status]||{}).t||v[i-1].status} → <b>${(ST[x.status]||{}).t||x.status}</b>`}); });
       (a.positionen_stand || []).forEach(s => {
-        const lab = s.typ === "lte" ? "Box-Position" : `Bereich ${s.name||""} ${s.richtung==="long"?"Long":"Short"}`;
+        if (s.typ !== "lte") return;
+        const lab = "Box-Position";
         if (s.typ === "lte" && s.eingestiegen_am && s.eingestiegen_am >= g) ev.push({d: s.eingestiegen_am, a, t: `${lab} eröffnet zu <span class="mono">${fmt(s.einstieg_kurs)}</span>`});
         if (s.ergebnis_am && s.ergebnis_am >= g && (s.status === "tp" || s.status === "sl")) ev.push({d: s.ergebnis_am, a, t: `${lab}: ${s.status==="tp"?"Ziel erreicht":"Stop ausgelöst"} ${pnlTxt(s.pnl_pct)}`});
       });
@@ -559,7 +630,6 @@ details.fold .in{padding:0 12px 12px}
       <div class="row"><div><span class="name">${esc(a.instrument)}</span><span class="sym mono">${esc(a.symbol)}</span></div><div class="px mono">${geld(L.k, a)}</div></div>
       <div class="meta"><span>Analyse vom ${dat(a.datum)}</span><span>${chg!=null?`<span class="${chg>=0?'ok':'bad'}">${pct(chg)}</span> seit Analyse`:''}${a.kurs_aktuell_eur!=null&&wg(a)!=="EUR"?` · <span class="mono">${fmt(a.kurs_aktuell_eur)} €</span>`:''}</span></div>
       ${boxBlock(L, true)}
-      ${zchips.length?`<div class="chips">${zchips.join("")}</div>`:''}
       <div class="sub-w"><span>${L.box && a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende && ["offen","im_bereich","unter_box"].includes(L.status)
         ? `Wende in der Zone <b style="color:var(--up)">${a.wahrscheinlichkeit.wende.dreht} %</b> · bricht ${a.wahrscheinlichkeit.wende.bricht} %`
         : `${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %${weg} · ${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} %${WS(a)?'':' (Analyse)'}`}</span><span>${(a.reviews||[]).length?`${a.reviews.length} Review${a.reviews.length>1?'s':''}`:'noch kein Review'}</span></div>
@@ -1116,7 +1186,6 @@ details.fold .in{padding:0 12px 12px}
         <div class="note" style="margin-top:8px">Die Gewichtung ist eine Strukturaussage, keine Zeitprognose. Die Richtungszuordnung ist die gemessen schwächere Seite der Methode; die Zonenrechnung die stärkere.</div>
       </div></details>
       ${wellenTabelle(a)}
-      ${posS.length?`<details class="fold"><summary>Kurzfristige Bereiche · Statistik</summary><div class="in">${posS.map(x=>posBlock(a,x.p,x.i)).join("")}<div class="note">Diese Bereiche messen, ob die Methode kurzfristig trifft. Sie sind nicht der Einstieg – der ist die Box.</div></div></details>`:''}
       ${a.bericht_url?`<details class="fold" id="ber"><summary>Vollständiger Bericht</summary><div class="in md" id="ber-in">Lade …</div></details>`:''}
       ${verlauf.length?`<details class="fold"><summary>Verlauf der Box</summary><div class="in vl">${verlauf.map(v=>`<span><span>${(ST[v.status]||{}).t||v.status}</span><span class="mono">seit ${dat(v.seit)} · ${fmt(v.kurs)}</span></span>`).join("")}</div></details>`:''}
       ${a.extern?`<section class="blk"><h3>HKCM zum Vergleich · Stand Analysetag</h3><div class="ext"><div class="src">${esc(a.extern.quelle)}${a.extern.datum?` · ${dat(a.extern.datum)}`:''}${a.extern.titel?`<br>„${esc(a.extern.titel)}“`:''}</div>
@@ -1151,16 +1220,13 @@ details.fold .in{padding:0 12px 12px}
     const rows = DATA.filter(trifft).sort((a,b)=>b.datum.localeCompare(a.datum));
     $("#rlist").innerHTML = rows.map(a => {
       const L = lage(a), chg = a.kurs_aktuell != null ? (a.kurs_aktuell / a.kurs - 1) * 100 : null;
-      const pos = a.positionen || [];
-      const t = {tp:0, sl:0, offen:0, wartet:0};
-      pos.forEach((p,i) => { const st = standVon(a,i); t[st ? st.status : "wartet"]++; });
+      const pos = (a.positionen || []).map((p, i) => ({p, i})).filter(x => x.p.typ === "lte");
       const bild = a.chart_anfang_url ? `<div class="bild"><img src="${esc(a.chart_anfang_url)}" alt="Anfangsprognose ${esc(a.instrument)}" loading="lazy"></div><div class="cap">${a.chart_anfang_art==="original"?`Original vom Analysetag ${dat(a.datum)}, mit Wellenzählung.`:`Prognosebild auf den Stand des Analysetags ${dat(a.datum)} nachgezeichnet – Zonen, Box und Pfade wie damals.`}</div>` : `<div class="cap">Kein Anfangsbild vorhanden.</div>`;
       return `<div class="rc"><div class="hd"><span class="name">${esc(a.instrument)}</span><span class="d">Analyse vom ${dat(a.datum)}</span></div>
         <div class="then"><span>damals <b class="mono">${geld(a.kurs, a)}</b> → heute <b class="mono">${geld(L.k, a)}</b></span><span>${chg!=null?pnlTxt(chg):''}</span></div>
         ${bild}
-        <h4>Empfohlene Positionen (${pos.length})</h4>
-        ${pos.length ? pos.map((p,i)=>tradeBlock(a,p,i)).join("") : '<div class="note">Keine Positionen hinterlegt.</div>'}
-        <div class="tally"><span class="st tp">funktioniert ${t.tp}</span><span class="st sl">gescheitert ${t.sl}</span><span class="st offen">offen ${t.offen}</span><span class="st wartet">wartet ${t.wartet}</span></div>
+        <h4>Die Box als Position</h4>
+        ${pos.length ? pos.map(x=>tradeBlock(a,x.p,x.i)).join("") : `<div class="note">${L.box ? "Keine Box-Position hinterlegt." : "Keine Box – kein Einstieg."}</div>`}
         ${(a.reviews||[]).length?`<h4>Prüfpunkte</h4><div class="rev">${a.reviews.map(reviewBlock).join("")}</div>`:''}
       </div>`;
     }).join("") || `<div class="empty">${SUCHE ? "Kein Titel passt zur Suche." : "Noch keine Analysen."}</div>`;
@@ -1226,9 +1292,7 @@ details.fold .in{padding:0 12px 12px}
         ${wartet.length?`<div class="note" style="margin-top:8px">${wartet.length} Position${wartet.length>1?'en warten':' wartet'} noch auf den Einstieg.</div>`:''}
         ${hinweis?`<div class="note" style="margin-top:8px">${hinweis}</div>`:''}</div>`;
     };
-    $("#pnl").innerHTML = block("Long-term Entry · kaufen und halten", grp.lte, "„Ziel“ ist bei der Box nur der Messpunkt Ziel 1 – gehalten wird weiter; die Spalte zeigt dann zusätzlich den Stand seit Einstieg. Einstieg bei Berührung der Oberkante, Stop auf Wochenschluss unter der Absicherung.")
-      + block("Trades · kurzfristige Long-Bereiche", grp.trade, "Einstieg bei Berührung des Bereichs, Ziel bei Berührung, Stop auf Wochenschlussbasis. Rechnerisch, ohne Gebühren und Spread.")
-      + block("Short-Bereiche · nur Statistik", grp2.short, "Werden nicht mehr empfohlen: Im Rückvergleich (5.326 Trades) kam der Stop in 61 % der Fälle zuerst, im Mittel −0,3 R je Trade. Sie bleiben hier, damit die Bilanz vollständig ist.")
+    $("#pnl").innerHTML = block("Long-term Entry · kaufen und halten", grp.lte, "„Ziel“ ist bei der Box nur der Messpunkt Ziel 1 – gehalten wird weiter; die Spalte zeigt dann zusätzlich den Stand seit Einstieg. Gekauft wird nach dem Kaufplan; eine gebrochene Prüfmarke löst keinen Verkauf aus.")
       + backtestBlock();
   }
 
@@ -1258,7 +1322,8 @@ details.fold .in{padding:0 12px 12px}
     const el = $("#stat"); if (!rows.length) { el.hidden = true; return; }
     const grp = {};
     for (const p of rows) {
-      const k = `${p.typ==="lte"?"Long-term Entry":"Bereich"} ${p.richtung==="long"?"Long":"Short"}`;
+      if (p.typ === "lte") continue;
+      const k = `Bereich ${p.richtung==="long"?"Long":"Short"}`;
       const g = grp[k] || (grp[k] = {n:0, ein:0, tp:0, sl:0, offen:0, r:[]});
       g.n++; if (p.eingestiegen) { g.ein++; g[p.ergebnis==="tp"?"tp":p.ergebnis==="sl"?"sl":"offen"]++; if (p.r_erzielt!=null) g.r.push(p.r_erzielt); }
     }
@@ -1268,24 +1333,361 @@ details.fold .in{padding:0 12px 12px}
       return `<tr><td>${k}</td><td class="n">${g.ein}/${g.n}</td><td class="n ok">${g.tp}</td><td class="n bad">${g.sl}</td><td class="n">${g.offen}</td><td class="n q">${q}</td><td class="n">${rm!=null?(rm>0?'+':'')+rm.toFixed(2).replace('.',','):'–'}</td></tr>`;
     }).join("");
     $("#statbody").innerHTML = `<div style="overflow-x:auto"><table><thead><tr><th>Position</th><th class="n">eingest.</th><th class="n">TP</th><th class="n">Stop</th><th class="n">offen</th><th class="n">TP-Quote</th><th class="n">Ø R</th></tr></thead><tbody>${tr}</tbody></table></div>
-      <div class="note" style="margin-top:8px">Über alle Prüfpunkte gezählt; eine Position kann mehrfach vorkommen. Die Bereiche sind Statistik über die Methode, nicht der Einstieg.</div>`;
+      <div class="note" style="margin-top:8px">Die kurzfristigen Bereiche, die die Analysen bis September 2026 genannt haben – über alle Prüfpunkte gezählt. Seit dem 25.09.2026 kommen Trading-Signale aus der geprüften Regel oben; die Analysen nennen keine Bereiche mehr.</div>`;
     el.hidden = false;
   }
 
+  // ════════════════════════════════════════════════════════════ Trading
+  let TR = null;                                        // trading.json
+  const TK = {};                                        // Tageskerzen je Titel
+  const lsGet = (k, d) => { try { const v = localStorage.getItem(k); return v == null ? d : v; } catch (e) { return d; } };
+  const lsSet = (k, v) => { try { localStorage.setItem(k, v); } catch (e) {} };
+  let DEPOTW = Number(lsGet("wj-depot", "10000")) || 10000;
+  let RISIKO = Number(lsGet("wj-risiko", "0.5")) || 0.5;
+  const tsym = w => SYM[w] || w;
+  const tgeld = (v, w) => v == null ? "–" : `${fmt(v)} ${tsym(w)}`;
+  const GRUND = {tp: "Ziel erreicht", sl: "Stop", zeit: "Zeitablauf", zeit_teil: "Zeitablauf", be: "Einstand", laeuft: "läuft"};
+  const pR = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(2).replace(".", ",") + " R";
+  const pR1 = v => v == null ? "–" : (v > 0 ? "+" : "") + v.toFixed(1).replace(".", ",") + " R";
+  const teur = (v, w) => { if (v == null) return null; if (w === "EUR") return v; const f = FX[w]; return f ? v / f.je_euro : null; };
+
+  // Stückzahl: Risiko-Betrag / Risiko je Stück (in Euro), höchstens 20 % des Depots je Position
+  function stueck(x, ein, stop, einE, stopE) {
+    const e = einE != null ? einE : teur(ein, x.waehrung), s = stopE != null ? stopE : teur(stop, x.waehrung);
+    if (e == null || s == null) return null;
+    if (!(e > s)) return null;
+    const risikoEur = DEPOTW * RISIKO / 100;
+    let n = Math.floor(risikoEur / (e - s));
+    const maxN = Math.floor(DEPOTW * ((TR && TR.depot && TR.depot.max_anteil) || 0.2) / e);
+    const begrenzt = n > maxN; n = Math.min(n, maxN);
+    if (n < 1) return {n: 0, einsatz: 0, risiko: 0, begrenzt};
+    return {n, einsatz: n * e, risiko: n * (e - s), begrenzt};
+  }
+  const stufeChip = x => x.stufe === "A" ? `<span class="sig stark">A · beste Erwartung</span>` : x.stufe ? `<span class="sig vorlaeufig">B</span>` : "";
+  const trifftT = x => !SUCHE || norm(x.name).includes(SUCHE) || norm(x.sym).includes(SUCHE);
+
+  function sigCard(x) {
+    const st = stueck(x, x.limit, x.stop, x.limit_eur, x.stop_eur);
+    const nah = x.abstand_pct <= 3;
+    return `<button class="tc ${nah ? "nah" : ""}" data-t="${esc(x.id)}">
+      <div class="row"><div><span class="name">${esc(x.name)}</span><span class="sym mono">${esc(x.sym)}</span></div><div class="px mono">${tgeld(x.kurs, x.waehrung)}</div></div>
+      <div class="l3" style="margin-top:2px"><span>Kurs <b>${pc1(x.abstand_pct)}</b> über dem Limit${x.neu ? ` · <b style="color:var(--up)">neu</b>` : ""}</span>${stufeChip(x)}</div>
+      <div class="g"><div><div class="k">Kauflimit</div><div class="v mono">${fmt(x.limit)}</div>${x.limit_eur != null ? `<div class="e">${fmt(x.limit_eur)} €</div>` : ""}</div>
+        <div><div class="k">Stop</div><div class="v mono">${fmt(x.stop)}</div><div class="e" style="color:var(--dn)">−${pc1(x.risiko_pct)}</div></div>
+        <div><div class="k">Ziel</div><div class="v mono">${fmt(x.ziel)}</div><div class="e" style="color:var(--up)">+${pc1((x.ziel / x.limit - 1) * 100)}</div></div></div>
+      <div class="pbar" title="Ziel vor Stop"><i style="width:${x.p || 0}%"></i></div>
+      <div class="l3"><span>Ziel vor Stop <b>${x.p != null ? x.p + " %" : "–"}</b> · Chance/Risiko <b>${x.crv != null ? x.crv.toFixed(1).replace(".", ",") : "–"}</b> · Erwartung <b>${pR(x.ev)}</b></span><span>${st && st.n ? `<b>${st.n} Stück</b> ≈ ${fmt(st.einsatz)} €` : ""}</span></div>
+    </button>`;
+  }
+
+  function offenCard(x) {
+    return `<button class="tc offen" data-t="${esc(x.id)}">
+      <div class="row"><div><span class="name">${esc(x.name)}</span><span class="sym mono">${esc(x.sym)}</span></div><div class="px mono">${tgeld(x.kurs, x.waehrung)}</div></div>
+      <div class="l3" style="margin-top:2px"><span>gekauft ${dsh(x.ein_am)} zu <b class="mono">${fmt(x.ein)}</b> · ${x.tage} Handelstage</span><span>${pnlTxt(x.pnl_pct)} · <b>${pR(x.pnl_r)}</b></span></div>
+      <div class="g"><div><div class="k">Einstieg</div><div class="v mono">${fmt(x.ein)}</div></div>
+        <div><div class="k">Stop</div><div class="v mono">${fmt(x.stop_aktuell ?? x.stop)}</div></div>
+        <div><div class="k">Ziel</div><div class="v mono">${fmt(x.ziel)}</div></div></div>
+    </button>`;
+  }
+
+  function zuRow(x) {
+    return `<button class="trr ${esc(x.grund)}" data-t="${esc(x.id)}"><span class="n">${esc(x.name)} <span class="sym mono" style="font-size:12px;color:var(--muted);font-weight:400">${esc(x.sym)}</span></span><span class="r ${x.r > 0 ? "ok" : "bad"}">${pR(x.r)}</span>
+      <span class="s">${dsh(x.ein_am)} ${fmt(x.ein)} → ${dsh(x.aus_am)} ${fmt(x.aus)} · ${GRUND[x.grund] || x.grund}</span><span class="s" style="text-align:right">${pct(x.ret)}</span></button>`;
+  }
+
+  function einstellungen() {
+    const r = DEPOTW * RISIKO / 100;
+    return `<details class="tset" id="tset"><summary><span>Depot <b>${fmt(DEPOTW)} €</b> · Risiko je Trade <b>${String(RISIKO).replace(".", ",")} %</b> = <b>${fmt(r)} €</b></span><span>ändern</span></summary>
+      <div class="in"><div class="r"><label>Depotwert in €<input id="t-depot" type="number" inputmode="decimal" min="100" step="100" value="${DEPOTW}"></label>
+      <label>Risiko je Trade in %<input id="t-risiko" type="number" inputmode="decimal" min="0.1" max="3" step="0.1" value="${RISIKO}"></label></div>
+      <div class="hint">Die Stückzahl je Signal: Risiko in € geteilt durch den Abstand Einstieg–Stop, höchstens ${Math.round(((TR && TR.depot && TR.depot.max_anteil) || 0.2) * 100)} % des Depots je Position. Im Rückvergleich war <b>0,5 %</b> je Trade mit höchstens ${(TR && TR.depot && TR.depot.max_pos) || 10} gleichzeitigen Positionen am besten – mehr Risiko brachte größere Rückgänge, aber nicht mehr Ertrag. Die Werte bleiben nur auf diesem Gerät.</div></div></details>`;
+  }
+
+  function renderTrading() {
+    const el = $("#t-signale");
+    if (!TR) { el.innerHTML = `<div class="empty">Die Trading-Signale konnten nicht geladen werden.</div>`; return; }
+    $("#t-n").textContent = TR.universum || "–";
+    $("#t-k").textContent = TR.kurse_am ? dsh(TR.kurse_am) : "–";
+    $("#t-stand").textContent = TR.stand ? new Date(TR.stand).toLocaleString("de-DE", {day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit"}) : "–";
+    const offenLive = (TR.offen || []).filter(x => x.live && trifftT(x));
+    const offenRueck = (TR.offen || []).filter(x => !x.live && trifftT(x));
+    const sig = (TR.signale || []).filter(trifftT);
+    const frei = Math.max(0, ((TR.depot && TR.depot.max_pos) || 10) - (TR.offen || []).filter(x => x.live).length);
+    // Tagesplan: die besten Signale nahe am Kurs (höchstens 10 % über dem Limit), nach Erwartung
+    const kand = sig.filter(x => x.abstand_pct <= 10).sort((a, b) => (b.ev ?? -9) - (a.ev ?? -9));
+    const plan = kand.slice(0, Math.max(frei, 3));
+    const rest = sig.filter(x => !plan.includes(x));
+    const neu = sig.filter(x => x.neu).length;
+    el.innerHTML = `${einstellungen()}
+      <div class="tt"><div><div class="k">Kauflimits</div><div class="v">${sig.length}</div></div><div><div class="k">Offen (live)</div><div class="v" style="color:var(--acc)">${offenLive.length}</div></div><div><div class="k">Neu heute</div><div class="v" style="color:var(--up)">${neu}</div></div></div>
+      ${offenLive.length ? `<div class="th2">Offene Trades<span>Stop und Ziel als Aufträge im Depot</span></div><div class="tl">${offenLive.map(offenCard).join("")}</div>` : ""}
+      <div class="th2">Tagesplan · Kauflimits für den nächsten Handelstag<span>${frei} von ${(TR.depot && TR.depot.max_pos) || 10} Plätzen frei</span></div>
+      <div class="count" style="margin-top:-2px">Die besten Signale nahe am Kurs, nach erwarteter Rendite. Ein Kauflimit gilt einen Tag und wird täglich neu gerechnet – solange der Kurs neue Hochs macht, wandert es mit nach oben.</div>
+      <div class="tl">${plan.length ? plan.map(sigCard).join("") : `<div class="empty">Derzeit kein gutes Signal nahe am Kurs.</div>`}</div>
+      ${rest.length ? `<details class="fold" style="margin:14px 16px 0"><summary>Weitere Kauflimits · ${rest.length}</summary><div class="in"><div class="tl" style="padding:0">${rest.map(sigCard).join("")}</div></div></details>` : ""}
+      ${offenRueck.length ? `<details class="fold" style="margin:12px 16px 0"><summary>Laufende Trades vor dem Start · ${offenRueck.length}</summary><div class="in"><div class="note" style="margin-bottom:8px">Diese Trades hätte die Regel vor dem Start des Live-Journals (${dat(TR.start)}) eröffnet. Sie laufen noch; für einen Einstieg jetzt gelten sie nicht – der Kurs ist ein anderer.</div><div class="tl" style="padding:0">${offenRueck.map(offenCard).join("")}</div></div></details>` : ""}`;
+    const ts = $("#tset");
+    if (ts) {
+      const upd = () => { const d = Number($("#t-depot").value), r = Number($("#t-risiko").value); if (d > 0) { DEPOTW = d; lsSet("wj-depot", String(d)); } if (r > 0 && r <= 5) { RISIKO = r; lsSet("wj-risiko", String(r)); } const offen_ = ts.open; renderTrading(); const t2 = $("#tset"); if (t2) t2.open = offen_; };
+      ts.querySelectorAll("input").forEach(i => i.addEventListener("change", upd));
+    }
+  }
+
+  function statKacheln(s, titel) {
+    if (!s) return "";
+    return `<div class="sum" style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:10px">
+      <div><div class="k">Trades</div><div class="v">${s.n}</div></div><div><div class="k">Treffer</div><div class="v">${s.treffer} %</div></div>
+      <div><div class="k">Ø je Trade</div><div class="v" style="color:${s.r_mittel >= 0 ? "var(--up)" : "var(--dn)"}">${pR(s.r_mittel)}</div></div><div><div class="k">Summe</div><div class="v">${pR1(s.r_summe)}</div></div></div>`;
+  }
+
+  function rKurve(lst) {
+    // aufsummierte R der Trades (nach Ausstiegsdatum) als kleine Kurve
+    const a = lst.slice().sort((x, y) => x.aus_am.localeCompare(y.aus_am));
+    if (a.length < 3) return "";
+    let s = 0; const pts = [[0, 0]]; a.forEach((x, i) => { s += x.r; pts.push([i + 1, s]); });
+    const W = 400, H = 120, lo = Math.min(0, ...pts.map(p => p[1])), hi = Math.max(0.5, ...pts.map(p => p[1]));
+    const X = i => 6 + i / (pts.length - 1) * (W - 12), Y = v => H - 8 - (v - lo) / (hi - lo) * (H - 16);
+    return `<div class="kurve"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Aufsummierte R"><line x1="0" x2="${W}" y1="${Y(0).toFixed(1)}" y2="${Y(0).toFixed(1)}" stroke="#333"/>
+      <path d="M ${pts.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join(" L ")}" fill="none" stroke="${C.grn}" stroke-width="2"/>
+      <text x="8" y="14" fill="#8a94a3" font-size="11" font-family="Arial">Summe der R, Trade für Trade</text><text x="${W - 8}" y="14" fill="#e8e8e8" font-size="12" font-weight="700" text-anchor="end" font-family="Arial">${pR1(s)}</text></svg></div>`;
+  }
+
+  function renderTradingReviews() {
+    const el = $("#t-reviews");
+    if (!TR) { el.innerHTML = ""; return; }
+    const zu = (TR.geschlossen || []).filter(trifftT);
+    const live = zu.filter(x => x.live), rueck = zu.filter(x => !x.live);
+    const sL = TR.statistik && TR.statistik.live, sR = TR.statistik && TR.statistik.rueckblick;
+    el.innerHTML = `<div class="count">Jeder Trade der Regel mit Einstieg, Ausstieg und Ergebnis in R (Vielfache des Risikos) und Prozent – nach Kosten, ohne Steuern.</div>
+      <div class="stat"><h2>Live seit ${dat(TR.start)}</h2>${sL ? statKacheln(sL) + rKurve(live) : `<div class="note">Noch kein abgeschlossener Live-Trade. Ein Trade dauert im Mittel gut vier Wochen; die ersten Ergebnisse kommen also frühestens in einigen Tagen. Bis dahin zeigt der Rückblick, was die Regel in den letzten zwölf Monaten gebracht hätte.</div>`}
+        ${live.length ? `<div class="tl" style="padding:0;margin-top:8px">${live.map(zuRow).join("")}</div>` : ""}</div>
+      <div class="stat"><h2>Rückblick · letzte 12 Monate (vor dem Start)</h2>${sR ? statKacheln(sR) + rKurve(rueck) : ""}
+        <div class="note" style="margin-bottom:8px">So hätte die Regel in den letzten zwölf Monaten gehandelt – mechanisch nachgerechnet, nicht live empfohlen. Ohne Depotgrenze: Im Depot mit höchstens ${(TR.depot && TR.depot.max_pos) || 10} Positionen wäre nur ein Teil davon gleichzeitig möglich gewesen.</div>
+        <div class="tl" style="padding:0">${rueck.slice(0, 40).map(zuRow).join("")}</div>
+        ${rueck.length > 40 ? `<details class="fold" style="margin-top:8px"><summary>Alle ${rueck.length} Trades</summary><div class="in"><div class="tl" style="padding:0">${rueck.slice(40).map(zuRow).join("")}</div></div></details>` : ""}</div>`;
+  }
+
+  function depotKurve(bt) {
+    const k = bt && bt.kurve; if (!k || k.length < 10) return "";
+    const W = 400, H = 200, lg = v => Math.log(v);
+    const vs = k.flatMap(p => [p[1], p[2]]), lo = lg(Math.min(...vs)), hi = lg(Math.max(...vs));
+    const t0 = tage(k[0][0]), t1 = tage(k[k.length - 1][0]);
+    const X = d => 34 + (tage(d) - t0) / (t1 - t0) * (W - 40), Y = v => H - 18 - (lg(v) - lo) / (hi - lo) * (H - 30);
+    const ticks = niceTicks(Math.exp(lo), Math.exp(hi), 5, true);
+    const jahre = []; for (let y = Number(k[0][0].slice(0, 4)) + 1; y <= Number(k[k.length - 1][0].slice(0, 4)); y += 5) jahre.push(y);
+    return `<div class="kurve"><svg viewBox="0 0 ${W} ${H}" role="img" aria-label="Depotkurve">
+      ${ticks.map(v => `<line x1="34" x2="${W - 6}" y1="${Y(v).toFixed(1)}" y2="${Y(v).toFixed(1)}" stroke="#1c1c1c"/><text x="30" y="${(Y(v) + 3.5).toFixed(1)}" fill="#8a94a3" font-size="9.5" text-anchor="end" font-family="Arial">${v >= 10 ? Math.round(v) + "×" : v.toFixed(1).replace(".", ",") + "×"}</text>`).join("")}
+      ${jahre.map(y => `<text x="${X(y + "-01-01").toFixed(1)}" y="${H - 4}" fill="#8a94a3" font-size="9.5" text-anchor="middle" font-family="Arial">${y}</text>`).join("")}
+      <path d="M ${k.map(p => X(p[0]).toFixed(1) + "," + Y(p[2]).toFixed(1)).join(" L ")}" fill="none" stroke="#8a94a3" stroke-width="1.3"/>
+      <path d="M ${k.map(p => X(p[0]).toFixed(1) + "," + Y(p[1]).toFixed(1)).join(" L ")}" fill="none" stroke="${C.grn}" stroke-width="2"/>
+      <text x="40" y="14" fill="${C.grn}" font-size="11" font-weight="700" font-family="Arial">Regel im Depot</text><text x="40" y="27" fill="#8a94a3" font-size="11" font-family="Arial">S&amp;P 500</text></svg></div>`;
+  }
+
+  function renderTradingBilanz() {
+    const el = $("#t-bilanz");
+    const bt = TR && TR.backtest;
+    if (!bt) { el.innerHTML = `<div class="empty">Kein Rückvergleich geladen.</div>`; return; }
+    const d = bt.depot || {}, a = d["1995-2011"] || {}, b = d["2012-2026"] || {}, g = d["2000-2026"] || {};
+    const zeile = (nm, x) => x ? `<tr><td>${nm}</td><td class="n">${x.n.toLocaleString("de-DE")}</td><td class="n">${x.treffer} %</td><td class="n">${pR(x.r_mittel)}</td><td class="n">${pct(x.ret_mittel)}</td><td class="n">${x.tage}</td></tr>` : "";
+    const jr = Object.entries(bt.jahresrenditen || {});
+    const jmax = Math.max(...jr.map(([, v]) => Math.abs(v)), 1);
+    el.innerHTML = `<div class="count">Die Regel mechanisch über ${bt.titel} Titel und ${bt.jahre} nachgerechnet – nur mit den Kursen, die am jeweiligen Tag vorlagen. Kosten 0,1 % je Kauf und Verkauf, ohne Steuern und Dividenden.</div>
+      <div class="pb"><h2>So wird gehandelt</h2><div class="note" style="color:var(--text)">${esc(TR.regel.text)}</div>
+        <div class="note" style="margin-top:6px">Depot: ${String((TR.depot.risiko || 0.005) * 100).replace(".", ",")} % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen gleichzeitig, je höchstens ${Math.round(TR.depot.max_anteil * 100)} % des Depots. Gibt es mehr Signale als Plätze, zuerst die mit der höheren Erwartung.</div></div>
+      <div class="pb"><h2>Depot im Rückvergleich</h2>
+        <div class="tiles"><div><div class="k">2012–2026</div><div class="v" style="color:var(--up)">${pct(b.cagr)} p. a.</div><div class="s">größter Rückgang ${b.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a., ${b.sp500_dd} %</div></div>
+        <div><div class="k">1995–2011</div><div class="v" style="color:var(--up)">${pct(a.cagr)} p. a.</div><div class="s">größter Rückgang ${a.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a., ${a.sp500_dd} %</div></div></div>
+        ${depotKurve(bt)}
+        <div class="note">2000–2026: ${pct(g.cagr)} p. a., größter Rückgang ${g.max_dd} %. Logarithmische Skala, Vielfaches des Startkapitals.</div>
+        <h2 style="margin-top:12px">Jahr für Jahr</h2>
+        <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px">${jr.map(([y, v]) => `<div style="background:${v >= 0 ? "var(--up-soft)" : "var(--dn-soft)"};border-radius:6px;padding:4px 6px;font-size:12px"><div style="color:var(--muted)">${y}</div><b class="${v >= 0 ? "ok" : "bad"}">${v > 0 ? "+" : ""}${v} %</b></div>`).join("")}</div></div>
+      <div class="pb"><h2>Einzelne Trades</h2><div style="overflow-x:auto"><table><tr><th>Zeitraum</th><th class="n">n</th><th class="n">Treffer</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
+        ${zeile("alle", bt.regel)}${zeile("bis 2011", bt.bis2011)}${zeile("ab 2012", bt.ab2012)}${zeile("Zufall zum Vergleich", bt.zufall)}</table></div>
+        <div class="note" style="margin-top:6px">Ein Gewinner brachte im Median <b>${pct(bt.regel.gewinn_median)}</b>, ein Verlierer kostete <b>${pct(bt.regel.verlust_median)}</b>. Nur gut jeder vierte Trade erreicht das Ziel – der Ertrag kommt aus dem Verhältnis von großem Gewinn zu kleinem Verlust. „Zufall“: gleiche Titel, gleicher Stop- und Zielabstand, aber ein zufälliger Einstiegstag – dort blieb fast nichts übrig. Der Vorteil liegt also im Einstieg am 78,6-%-Rücksetzer, nicht im allgemeinen Anstieg der Aktien.</div></div>
+      <div class="pb"><h2>Nach Gruppen</h2><div style="overflow-x:auto"><table><tr><th>Gruppe</th><th class="n">n</th><th class="n">Treffer</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
+        ${Object.entries(bt.klassen || {}).sort((x, y) => y[1].r_mittel - x[1].r_mittel).map(([k, x]) => zeile(k, x)).join("")}</table></div>
+        <div class="note" style="margin-top:6px">Am besten in schwankungsfreudigen Titeln (Tech, Gesundheit, Krypto); ruhige Titel wie deutsche Standardwerte bringen wenig.</div></div>
+      <div class="pb"><h2>Was man aushalten muss</h2><div class="note">Drei von vier Trades enden am Stop. Ein einzelner Titel hatte bis zu ${bt.verlustserie_titel_max} Verlierer in Folge. Das Depot fiel im Rückvergleich zeitweise um bis zu ${Math.abs(g.max_dd || a.max_dd)} % (2008) und hatte vier Verlustjahre. Wer die Regel nur halb befolgt – Stops verschiebt oder Ziele früher nimmt –, zerstört genau das Verhältnis, von dem sie lebt. Titel, die ganz vom Markt verschwanden, fehlen in den Daten; die echten Ergebnisse dürften etwas schwächer sein.</div></div>`;
+  }
+
+  // ── Chart eines Trades (Tageskerzen, HKCM-Optik)
+  async function tkurse(sym) {
+    if (TK[sym]) return TK[sym];
+    const r = await fetch("tkurse/" + sym.replace("^", "IDX_") + ".json?v=" + encodeURIComponent((TR && TR.kurse_am) || ""));
+    if (!r.ok) return null;
+    return (TK[sym] = await r.json());
+  }
+
+  function tchartSVG(x, kd, W, H) {
+    const f = Math.max(1, Math.min(1.45, W / 460)), fs = n => (n * f).toFixed(1);
+    const heute = tage(kd.stand);
+    const t0lim = x.tief_am ? tage(x.tief_am) - 60 : heute - 200;
+    const cs = kd.d.filter(c => c[0] >= Math.min(t0lim, heute - 130));
+    if (!cs.length) return `<div class="lade">Keine Kursdaten.</div>`;
+    const T0 = cs[0][0], T1 = heute + Math.max((heute - T0) * 0.42, 45);
+    const ein = x.ein ?? x.limit, stop = x.stop_aktuell ?? x.stop;
+    const ps = []; cs.forEach(c => ps.push(c[2], c[3])); [ein, x.stop, x.ziel, x.hoch, x.tief].forEach(v => { if (v != null) ps.push(v); });
+    const lo = Math.min(...ps), hi = Math.max(...ps), pad = (hi - lo) * 0.07;
+    const P0 = Math.max(0, lo - pad), P1 = hi + pad;
+    const Y0 = 8, Y1 = H - 30 * f, X0 = 4, X1 = W - 64 * f;
+    const X = t => X0 + (t - T0) / (T1 - T0) * (X1 - X0), Y = p => Y1 - (p - P0) / (P1 - P0) * (Y1 - Y0);
+    const s = [], A = v => s.push(v);
+    const T = (px, py, tx, size, col, anchor = "start", weight = 400, italic = false) => A(`<text x="${px.toFixed(1)}" y="${py.toFixed(1)}" font-family="Arial,Helvetica,sans-serif" font-size="${fs(size)}" fill="${col}" text-anchor="${anchor}" font-weight="${weight}"${italic ? ' font-style="italic"' : ''}>${esc(tx)}</text>`);
+    A(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" role="img" aria-label="Trade-Chart ${esc(x.name)}"><rect width="${W}" height="${H}" fill="#000"/>`);
+    const cid = "t" + Math.random().toString(36).slice(2, 8);
+    A(`<defs><clipPath id="${cid}"><rect x="${X0}" y="${Y0}" width="${X1 - X0}" height="${Y1 - Y0}"/></clipPath></defs>`);
+    const xh = X(heute);
+    A(`<rect x="${xh.toFixed(1)}" y="${Y0}" width="${(X1 - xh).toFixed(1)}" height="${(Y1 - Y0).toFixed(1)}" fill="#070707"/>`);
+    niceTicks(P0, P1, 6, false).forEach(p => A(`<line x1="${X0}" y1="${Y(p).toFixed(1)}" x2="${X1}" y2="${Y(p).toFixed(1)}" stroke="${C.grid}"/>`));
+    for (let dd = new Date(T0 * 864e5); dd <= new Date(T1 * 864e5); dd.setUTCMonth(dd.getUTCMonth() + 1)) {
+      dd.setUTCDate(1); const tt = Math.round(dd / 864e5); if (tt < T0 + 5) continue; const xx = X(tt); if (xx > X1 - 12) break;
+      A(`<line x1="${xx.toFixed(1)}" y1="${Y0}" x2="${xx.toFixed(1)}" y2="${Y1}" stroke="#141414"/>`);
+      T(xx, Y1 + 12 * f, dd.toLocaleDateString("de-DE", {month: "short", timeZone: "UTC"}), 9.5, C.gry, "middle");
+    }
+    const badges = [];
+    // Fibonacci des Anstiegs Tief -> Hoch
+    if (x.hoch && x.tief) {
+      const sw = x.hoch - x.tief, xa = x.tief_am ? X(tage(x.tief_am)) : X0;
+      [[0.618, "61.80%"], [0.786, "78.60%"], [1, "100%"]].forEach(([r, lab]) => { const v = x.hoch - r * sw; if (v < P0) return;
+        A(`<line x1="${xa.toFixed(1)}" y1="${Y(v).toFixed(1)}" x2="${X1}" y2="${Y(v).toFixed(1)}" stroke="#bdbdbd" stroke-opacity=".5" stroke-width=".8" stroke-dasharray="5,4"/>`);
+        T(X1 - 4, Y(v) - 3, `${lab} (${fmtC(v)})`, 8.5, C.grn, "end", 700); });
+      const ext = x.hoch + 0.618 * sw;
+      A(`<rect x="${xh.toFixed(1)}" y="${Y(ext).toFixed(1)}" width="${(X1 - xh).toFixed(1)}" height="${Math.max(2, Y(x.hoch) - Y(ext)).toFixed(1)}" fill="${C.grn}" fill-opacity=".10"/>`);
+      A(`<line x1="${xa.toFixed(1)}" y1="${Y(x.hoch).toFixed(1)}" x2="${X1}" y2="${Y(x.hoch).toFixed(1)}" stroke="${C.grn}" stroke-width="1" stroke-opacity=".7"/>`);
+    }
+    // Kaufzone: Limit bis Stop (blau), Stop rot, Ziel grün
+    if (ein != null && x.stop != null) {
+      const xs_ = x.ein_am ? X(tage(x.ein_am)) : xh - 2;
+      A(`<rect x="${Math.min(xs_, xh).toFixed(1)}" y="${Y(ein).toFixed(1)}" width="${(X1 - Math.min(xs_, xh)).toFixed(1)}" height="${Math.max(2, Y(x.stop) - Y(ein)).toFixed(1)}" fill="${C.blue}" fill-opacity=".45" stroke="${C.grn}" stroke-width="1.3"/>`);
+      badges.push([Y(ein), (x.ein != null ? "Kauf " : "Limit ") + fmtC(ein), "#2f6fd8", "#fff"]);
+    }
+    if (stop != null) { A(`<line x1="${X0}" y1="${Y(stop).toFixed(1)}" x2="${X1}" y2="${Y(stop).toFixed(1)}" stroke="${C.red}" stroke-width="1.4" stroke-dasharray="8,4"/>`); badges.push([Y(stop), "Stop " + fmtC(stop), C.red, "#fff"]); }
+    if (x.ziel != null) { A(`<line x1="${xh.toFixed(1)}" y1="${Y(x.ziel).toFixed(1)}" x2="${X1}" y2="${Y(x.ziel).toFixed(1)}" stroke="${C.grn}" stroke-width="1.6"/>`); badges.push([Y(x.ziel), "▲ " + fmtC(x.ziel), C.grn, "#000"]); }
+    // Kerzen
+    A(`<g clip-path="url(#${cid})">`);
+    const kw = Math.max(1, Math.min(7, (X(T0 + 1.4) - X(T0)) * 0.7));
+    cs.forEach(([tt, o, h, l, c]) => { const cx = X(tt + 0.5);
+      A(`<line x1="${cx.toFixed(1)}" y1="${Y(h).toFixed(1)}" x2="${cx.toFixed(1)}" y2="${Y(l).toFixed(1)}" stroke="${C.wick}" stroke-width=".8"/>`);
+      A(`<rect x="${(cx - kw / 2).toFixed(1)}" y="${Y(Math.max(o, c)).toFixed(1)}" width="${kw.toFixed(1)}" height="${Math.max(.7, Y(Math.min(o, c)) - Y(Math.max(o, c))).toFixed(1)}" fill="${c >= o ? C.body : C.bg}" stroke="${C.wick}" stroke-width=".6"/>`); });
+    A(`</g>`);
+    // Wendepunkte
+    if (x.tief_am) { const tx = X(tage(x.tief_am)); T(tx, Y(x.tief) + 14 * f, "Tief", 10, C.txt, "middle", 700); }
+    A(`<line x1="${xh.toFixed(1)}" y1="${Y0}" x2="${xh.toFixed(1)}" y2="${Y1}" stroke="${C.gry}" stroke-dasharray="4,4" stroke-width=".9"/>`);
+    T(xh - 4, Y0 + 10 * f, "heute", 8.5, C.gry, "end");
+    // Einstieg / Ausstieg markieren
+    if (x.ein_am) { const ex_ = X(tage(x.ein_am) + 0.5); A(`<path d="M ${ex_},${(Y(x.ein) + 4).toFixed(1)} l -5,9 l 10,0 z" fill="${C.grn}"/>`); }
+    if (x.aus_am) { const ax = X(tage(x.aus_am) + 0.5); A(`<path d="M ${ax},${(Y(x.aus) - 4).toFixed(1)} l -5,-9 l 10,0 z" fill="${x.r > 0 ? C.grn : C.red}"/>`); }
+    // Pfade im Erwartungsraum (nur wartend/offen)
+    const k = cs[cs.length - 1][4], fw = X1 - xh;
+    const pfad = (pts, col, sw, dash) => A(`<path d="M ${pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L ")}" fill="none" stroke="${col}" stroke-width="${sw}"${dash ? ` stroke-dasharray="${dash}"` : ""} stroke-linejoin="round" stroke-linecap="round"/>`);
+    const spitze = (p, q, col) => { const ang = Math.atan2(q[1] - p[1], q[0] - p[0]), l = 7 * f; A(`<path d="M ${q[0].toFixed(1)},${q[1].toFixed(1)} L ${(q[0] - l * Math.cos(ang - 0.45)).toFixed(1)},${(q[1] - l * Math.sin(ang - 0.45)).toFixed(1)} L ${(q[0] - l * Math.cos(ang + 0.45)).toFixed(1)},${(q[1] - l * Math.sin(ang + 0.45)).toFixed(1)} z" fill="${col}"/>`); };
+    const badgeP = (px, py, tx) => { const bw = 34 * f, bh = 15 * f; const bx = Math.min(X1 - bw - 2, Math.max(xh + 2, px - bw / 2)); A(`<rect x="${bx.toFixed(1)}" y="${(py - bh - 5).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="#fff"/>`); T(bx + bw / 2, py - 5 - 4 * f, tx, 10, "#000", "middle", 700); };
+    if (!x.aus_am && x.ziel != null && stop != null && x.p != null) {
+      let wx = xh, wy = Y(k);
+      if (!x.ein_am && k > ein) { const pts = [[xh, Y(k)], [xh + fw * 0.25, Y(ein)]]; pfad(pts, C.red, 2.2 * f); spitze(pts[0], pts[1], C.red); [wx, wy] = pts[1]; }
+      const zp = [[wx, wy], [X1 - 10, Y(x.ziel)]]; pfad(zp, C.grn, 2.2 * f); spitze(zp[0], zp[1], C.grn);
+      const sp = [[wx, wy], [wx + (X1 - wx) * 0.35, Y(stop) + 2]]; pfad(sp, C.red, 1.8 * f, "7,5"); spitze(sp[0], sp[1], C.red);
+      badgeP(X1 - 26 * f, Y(x.ziel) + 22 * f, x.p + " %");
+      badgeP(sp[1][0], sp[1][1] + 24 * f, (100 - x.p) + " %");
+    }
+    // Kurs
+    A(`<line x1="${X0}" y1="${Y(k).toFixed(1)}" x2="${X1}" y2="${Y(k).toFixed(1)}" stroke="#fff" stroke-width=".7" stroke-dasharray="2,3"/>`);
+    badges.push([Y(k), fmtC(k), "#fff", "#000"]);
+    badges.sort((p, q) => p[0] - q[0]);
+    const bh = 14 * f, gap = bh + 2, pos = [];
+    badges.forEach(b => { let by = Math.min(Math.max(b[0], Y0 + bh / 2), Y1 - bh / 2); if (pos.length && by - pos[pos.length - 1] < gap) by = pos[pos.length - 1] + gap; pos.push(by); });
+    for (let i = pos.length - 1; i >= 0; i--) { const g = Y1 - bh / 2 - (pos.length - 1 - i) * gap; if (pos[i] > g) pos[i] = g; }
+    badges.forEach((b, i) => { A(`<rect x="${X1 + 3}" y="${(pos[i] - bh / 2).toFixed(1)}" width="${(W - X1 - 5).toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="${b[2]}"/>`); T(X1 + 3 + (W - X1 - 5) / 2, pos[i] + 3.6 * f, b[1], 8.5, b[3], "middle", 700); });
+    T(X0 + 4, H - 4, `Tageskerzen · ${esc(x.waehrung)} · Blau: Kaufzone bis Stop · rechts von heute: Erwartung, kein Termin`, 8.5, "#6a6a6a");
+    A(`</svg>`);
+    return s.join("");
+  }
+
+  function findeT(id) {
+    if (!TR) return null;
+    return (TR.signale || []).find(x => x.id === id) || (TR.offen || []).find(x => x.id === id) || (TR.geschlossen || []).find(x => x.id === id);
+  }
+
+  function openTrade(id) {
+    const x = findeT(id); if (!x) return;
+    const art = x.aus_am ? "zu" : x.ein_am ? "offen" : "wartet";
+    const st = art === "wartet" ? stueck(x, x.limit, x.stop, x.limit_eur, x.stop_eur) : null;
+    const w = x.waehrung;
+    const eu = v => v != null && w !== "EUR" ? ` <span class="s">≈ ${fmt(v)} €</span>` : "";
+    const auftrag = art === "wartet" ? `<div class="auftrag">
+        <div class="z"><span>1 · Kauflimit<div class="s">für den nächsten Handelstag</div></span><b class="mono">${tgeld(x.limit, w)}${eu(x.limit_eur)}</b></div>
+        <div class="z"><span>2 · Nach dem Kauf: Stop-Loss<div class="s">Verkauf, wenn der Kurs den Stop berührt</div></span><b class="mono">${tgeld(x.stop, w)}${eu(x.stop_eur)}</b></div>
+        <div class="z"><span>3 · Verkaufslimit (Ziel)<div class="s">161,8-%-Ausdehnung des Anstiegs</div></span><b class="mono">${tgeld(x.ziel, w)}${eu(x.ziel_eur)}</b></div>
+        ${st ? `<div class="z"><span>Stückzahl<div class="s">bei ${fmt(DEPOTW)} € Depot und ${String(RISIKO).replace(".", ",")} % Risiko${st.begrenzt ? " – begrenzt auf 20 % des Depots" : ""}</div></span><b class="mono">${st.n} Stück · ${fmt(st.einsatz)} €<div class="s" style="text-align:right">Risiko ${fmt(st.risiko)} €</div></b></div>` : ""}
+      </div>` : art === "offen" ? `<div class="auftrag">
+        <div class="z"><span>Gekauft ${dat(x.ein_am)}</span><b class="mono">${tgeld(x.ein, w)}${eu(x.ein_eur)}</b></div>
+        <div class="z"><span>Stop-Loss</span><b class="mono">${tgeld(x.stop_aktuell ?? x.stop, w)}${eu(x.stop_aktuell_eur ?? x.stop_eur)}</b></div>
+        <div class="z"><span>Verkaufslimit (Ziel)</span><b class="mono">${tgeld(x.ziel, w)}${eu(x.ziel_eur)}</b></div>
+        <div class="z"><span>Stand ${dsh(x.stand_am)}</span><b>${pnlTxt(x.pnl_pct)} · ${pR(x.pnl_r)}</b></div>
+        <div class="z"><span>Spätester Ausstieg</span><b>nach 120 Handelstagen (noch ${Math.max(0, 120 - x.tage)})</b></div></div>` : `<div class="auftrag">
+        <div class="z"><span>Kauf ${dat(x.ein_am)}</span><b class="mono">${tgeld(x.ein, w)}</b></div>
+        <div class="z"><span>Verkauf ${dat(x.aus_am)} · ${GRUND[x.grund] || x.grund}</span><b class="mono">${tgeld(x.aus, w)}</b></div>
+        <div class="z"><span>Ergebnis nach Kosten</span><b>${pnlTxt(x.ret)} · ${pR(x.r)}</b></div>
+        <div class="z"><span>${x.live ? "Live-Trade" : "Rückblick (vor dem Start)"}</span><b>${x.tage} Handelstage</b></div></div>`;
+    const sw = x.hoch && x.tief ? (x.hoch / x.tief - 1) * 100 : null;
+    const el = document.createElement("div"); el.className = "sheet"; el.setAttribute("role", "dialog"); el.setAttribute("aria-modal", "true");
+    el.innerHTML = `<div class="inner"><div class="bar-top"><button class="back" id="back">← Zurück</button><h2>${esc(x.name)}</h2></div><div class="body">
+      <div class="head"><div><div class="big">${esc(x.name)}</div><div class="meta mono">${esc(x.sym)} · ${art === "wartet" ? "Kauflimit seit " + dat(x.zuerst_gesehen || x.seit) : art === "offen" ? "offen seit " + dat(x.ein_am) : "geschlossen " + dat(x.aus_am)}</div></div>
+        <div class="px"><div class="k">Kurs</div><div class="v mono">${tgeld(x.kurs ?? x.aus, w)}</div>${x.kurs_eur != null ? `<div class="k mono" style="text-transform:none;letter-spacing:0">≈ ${fmt(x.kurs_eur)} €</div>` : ""}</div></div>
+      <section class="blk"><div class="lte ${art === "offen" ? "im_bereich" : ""}"><div class="t">Trading · Fibonacci-Rücksetzer ${x.stufe ? "· Stufe " + x.stufe : ""}</div>
+        <div class="stt">${art === "wartet" ? `Kauflimit ${tgeld(x.limit, w)}` : art === "offen" ? "Trade läuft" : GRUND[x.grund] || x.grund}</div>
+        <div class="sub">${art === "wartet" ? `Kurs ${pc1(x.abstand_pct)} über dem Limit. Gültig, bis das Limit gefüllt wird, der Kurs unter den Stop fällt oder bis ${dat(x.gueltig_bis)}.` : art === "offen" ? "Stop und Ziel als Aufträge im Depot lassen – nicht verschieben." : ""}</div>
+        ${auftrag}
+        <div class="kv">${x.p != null ? `<span class="k">Ziel vor Stop</span><span><b>${x.p} %</b> <span style="color:var(--muted)">– Modell aus ${((TR.backtest && TR.backtest.regel && TR.backtest.regel.n) || 13000).toLocaleString("de-DE")} Trades; im Mittel ${TR.backtest && TR.backtest.regel ? TR.backtest.regel.treffer : 27} %</span></span>` : ""}
+          ${x.ev != null ? `<span class="k">Erwartung</span><span><b>${pR(x.ev)}</b> je Trade <span style="color:var(--muted)">(Mittel aller Trades ${pR(TR.backtest && TR.backtest.regel ? TR.backtest.regel.r_mittel : null)})</span></span>` : ""}
+          ${x.crv != null ? `<span class="k">Chance / Risiko</span><span>${x.crv.toFixed(1).replace(".", ",")} : 1 · Risiko ${pc1(x.risiko_pct)}</span>` : ""}
+          ${sw != null ? `<span class="k">Anstieg</span><span class="mono">${fmt(x.tief)} → ${fmt(x.hoch)} (+${pc1(sw)})${x.tief_am ? ` <span style="font-family:inherit;color:var(--muted)">ab ${dat(x.tief_am)}</span>` : ""}</span>` : ""}</div></div></section>
+      <section class="blk"><div class="cv" id="tcv"></div><div class="note" style="margin-top:6px">Tageskerzen. Blau: Kaufzone vom Limit (78,6 %) bis zum Stop unter dem Tief. Grün: Ziel (161,8 %) und altes Hoch. Durchgezogen der Weg zum Ziel mit der Wahrscheinlichkeit, gestrichelt der Weg zum Stop.</div></section>
+      <details class="fold"><summary>Warum diese Regel</summary><div class="in"><div class="note">${esc(TR.regel.text)} Im Rückvergleich (${TR.backtest ? TR.backtest.titel : ""} Titel, ${TR.backtest ? TR.backtest.jahre : ""}) erreichten ${TR.backtest && TR.backtest.regel ? TR.backtest.regel.treffer : 27} % der Trades das Ziel; ein Gewinner brachte im Median ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.gewinn_median) : ""}, ein Verlierer kostete ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.verlust_median) : ""}. Mit zufälligem Einstiegstag bei gleichem Stop- und Zielabstand blieb fast nichts übrig – der Vorteil ist der Einstieg am Rücksetzer.</div></div></details>
+      <p class="note">Keine Anlageberatung. Die Wahrscheinlichkeit ist eine Häufigkeit aus vergleichbaren Lagen der Vergangenheit.</p>
+    </div></div>`;
+    document.body.appendChild(el); document.body.style.overflow = "hidden";
+    const cv = el.querySelector("#tcv");
+    const draw = async () => { cv.innerHTML = `<div class="lade">Lade Kurse …</div>`; try { const kd = await tkurse(x.sym); if (!kd) { cv.innerHTML = `<div class="lade">Keine Kursdaten.</div>`; return; } const W = Math.round(cv.clientWidth || 360), H = Math.round(Math.min(W * 0.9, 440)); cv.innerHTML = tchartSVG(x, kd, W, H); } catch (e) { cv.innerHTML = `<div class="lade">Chart nicht darstellbar.</div>`; } };
+    draw();
+    window.addEventListener("resize", draw);
+    const close = () => { window.removeEventListener("resize", draw); el.remove(); document.body.style.overflow = ""; if (location.hash) history.replaceState(null, "", location.pathname); };
+    el.querySelector("#back").addEventListener("click", close);
+    el.addEventListener("keydown", e => { if (e.key === "Escape") close(); });
+    el.querySelector("#back").focus();
+  }
+
   // ════════════════════════════════════════════════════════════ Bedienung
-  let VIEW = "titel";
+  let VIEW = "titel", MODUS = lsGet("wj-modus", "lang") === "trade" ? "trade" : "lang";
+  function setModus(m, still) {
+    MODUS = m; lsSet("wj-modus", m);
+    document.body.dataset.mode = m;
+    $("#modus").querySelectorAll("button").forEach(b => b.setAttribute("aria-pressed", b.dataset.m === m ? "true" : "false"));
+    $("#sub-kopf").textContent = m === "trade" ? "Trading: kaufen am Rücksetzer, mit Stop und Ziel" : "Long-term Entry: wo kaufen, um über Jahre zu halten";
+    const tabs = m === "trade" ? "#ttabs" : "#tabs";
+    const aktiv = $(tabs).querySelector('[aria-pressed="true"]') || $(tabs).querySelector("button");
+    zeigeView(aktiv.dataset.v);
+    if (!still) window.scrollTo(0, 0);
+  }
+  function zeigeView(v) {
+    VIEW = v;
+    const tabs = v.startsWith("t-") ? "#ttabs" : "#tabs";
+    $(tabs).querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x.dataset.v === v ? "true" : "false"));
+    ["titel","reviews","bilanz","t-signale","t-reviews","t-bilanz"].forEach(k => { $("#v-" + k).hidden = k !== v; });
+  }
+  $("#modus").addEventListener("click", e => { const b = e.target.closest("button"); if (b) setModus(b.dataset.m); });
+  $("#ttabs").addEventListener("click", e => { const b = e.target.closest("button"); if (!b) return; zeigeView(b.dataset.v); window.scrollTo(0, 0); });
+  ["#t-signale", "#t-reviews"].forEach(sel => $(sel).addEventListener("click", e => { const c = e.target.closest("[data-t]"); if (c) openTrade(c.dataset.t); }));
   $("#tabs").addEventListener("click", e => {
     const b = e.target.closest("button"); if (!b) return;
-    VIEW = b.dataset.v;
-    $("#tabs").querySelectorAll("button").forEach(x => x.setAttribute("aria-pressed", x === b ? "true" : "false"));
-    ["titel","reviews","bilanz"].forEach(v => { $("#v-" + v).hidden = v !== VIEW; });
+    zeigeView(b.dataset.v);
     window.scrollTo(0, 0);
   });
   const sucheEl = $("#suche");
   sucheEl.addEventListener("input", () => {
     SUCHE = norm(sucheEl.value.trim());
     $("#suche-x").hidden = !sucheEl.value;
-    renderList(); renderReviews(); renderQueue();
+    renderList(); renderReviews(); renderQueue(); renderTrading(); renderTradingReviews();
   });
   $("#suche-x").addEventListener("click", () => { sucheEl.value = ""; sucheEl.dispatchEvent(new Event("input")); sucheEl.focus(); });
   sucheEl.addEventListener("keydown", e => { if (e.key === "Escape") { sucheEl.value = ""; sucheEl.dispatchEvent(new Event("input")); } });
@@ -1320,15 +1722,20 @@ details.fold .in{padding:0 12px 12px}
       const d = await r.json();
       META = d; DATA = (d.analysen || []).filter(a => a && a.id && a.szenarien && a.quelle !== "backtest");
       try { const rb = await fetch("backtest.json", {cache: "no-store"}); if (rb.ok) BT = await rb.json(); } catch (e) {}
+      try { const rt = await fetch("trading.json", {cache: "no-store"}); if (rt.ok) TR = await rt.json(); } catch (e) {}
+      for (const k in TK) delete TK[k];
       WUENSCHE = d.wuensche || []; FX = d.fx || {};
       for (const k in KURSE) delete KURSE[k];
       const fxl = Object.entries(FX).map(([w,f]) => `EUR/${w} ${f.je_euro.toLocaleString("de-DE",{minimumFractionDigits:4,maximumFractionDigits:4})}`).join(" · ");
       $("#s-fx").hidden = !fxl; $("#s-fxv").textContent = fxl;
       $("#s-stand").textContent = d.stand ? new Date(d.stand).toLocaleString("de-DE", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) : "–";
       renderStatus(); renderNeu(); renderList(); renderStatLte(); renderStat(); renderQueue(); renderReviews(); renderBilanz();
-      if (manuell) toast("Aktualisiert – Stand " + $("#s-stand").textContent);
+      renderTrading(); renderTradingReviews(); renderTradingBilanz();
+      if (manuell) toast("Aktualisiert – Stand " + (MODUS === "trade" ? $("#t-stand").textContent : $("#s-stand").textContent));
       const [h, hm] = decodeURIComponent(location.hash.slice(1)).split(":");
-      if (h === "reviews" || h === "bilanz") $(`#tabs [data-v="${h}"]`).click();
+      if (h === "trading") { setModus("trade", true); if (hm === "reviews" || hm === "bilanz") zeigeView("t-" + hm); }
+      if (h === "t" && hm && !document.querySelector(".sheet")) { setModus("trade", true); openTrade(decodeURIComponent(location.hash.slice(1)).slice(2)); }
+      if (h === "reviews" || h === "bilanz") { setModus("lang", true); $(`#tabs [data-v="${h}"]`).click(); }
       if (h && DATA.some(a => a.id === h) && !document.querySelector(".sheet")) {
         if (hm === "uebersicht" || hm === "voll-uebersicht") CHARTMODE = "uebersicht";
         openDetail(h);
@@ -1339,6 +1746,7 @@ details.fold .in{padding:0 12px 12px}
       $("#list").innerHTML = `<div class="empty">Das Journal konnte nicht geladen werden. Ohne Verbindung wird der letzte bekannte Stand angezeigt, sobald er einmal geladen war.</div>`;
     }
   }
+  setModus(MODUS, true);
   laden();
   if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
 })();
