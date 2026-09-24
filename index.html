@@ -560,7 +560,9 @@ details.fold .in{padding:0 12px 12px}
       <div class="meta"><span>Analyse vom ${dat(a.datum)}</span><span>${chg!=null?`<span class="${chg>=0?'ok':'bad'}">${pct(chg)}</span> seit Analyse`:''}${a.kurs_aktuell_eur!=null&&wg(a)!=="EUR"?` · <span class="mono">${fmt(a.kurs_aktuell_eur)} €</span>`:''}</span></div>
       ${boxBlock(L, true)}
       ${zchips.length?`<div class="chips">${zchips.join("")}</div>`:''}
-      <div class="sub-w"><span>${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %${weg} · ${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} %${WS(a)?'':' (Analyse)'}</span><span>${(a.reviews||[]).length?`${a.reviews.length} Review${a.reviews.length>1?'s':''}`:'noch kein Review'}</span></div>
+      <div class="sub-w"><span>${L.box && a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende && ["offen","im_bereich","unter_box"].includes(L.status)
+        ? `Wende in der Zone <b style="color:var(--up)">${a.wahrscheinlichkeit.wende.dreht} %</b> · bricht ${a.wahrscheinlichkeit.wende.bricht} %`
+        : `${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %${weg} · ${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} %${WS(a)?'':' (Analyse)'}`}</span><span>${(a.reviews||[]).length?`${a.reviews.length} Review${a.reviews.length>1?'s':''}`:'noch kein Review'}</span></div>
     </button>`;
   }
 
@@ -639,13 +641,11 @@ details.fold .in{padding:0 12px 12px}
   // Wie hängen Box und wahrscheinlicheres Szenario zusammen? Die Box ist das Ziel der Korrektur –
   // ein wahrscheinlicherer Abverkauf ist deshalb kein Widerspruch, sondern der Weg dorthin.
   function bezug(L) {
-    const h = higher(L.a), dn = L.dn;
     if (!L.box || !["offen","im_bereich","unter_box"].includes(L.status)) return "";
-    if (h.richtung === "ab") {
-      const tiefer = dn && (dn.zonen||[]).some(z => Math.min(...z) < L.box[1]);
-      return `Kein Widerspruch: Die Box ist das Ziel des Abwärtsszenarios (${gw(L.a, h)} %). Der wahrscheinlichere Abverkauf ist der Weg in die Box – dort wird gekauft, und von dort führt der Weg zur selben Zielleiter wie im Aufwärtsszenario (im Chart grün gestrichelt, „danach ▲“). Beide Szenarien enden im selben Anstieg; sie unterscheiden sich im Weg, nicht im Ziel.${tiefer?` Die unterste Zone reicht unter die Box; läuft das Szenario voll, notiert der Kurs vorübergehend unter dem Einstieg, solange die Absicherung hält.`:''}`;
-    }
-    if (L.status === "im_bereich") return `Das Aufwärtsszenario (${gw(L.a, h)} %) ist wahrscheinlicher und der Kurs steht in der Box – die Box wird gerade gehandelt.`;
+    const wz = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.wende;
+    if (wz) return `Hauptszenario: Wende in der Kaufzone (${wz.dreht} %) und von dort zur Zielleiter. Alternative: Die Zone bricht (${wz.bricht} %) – dann fiel der Kurs historisch meist bis zur harten Marke; knapp die Hälfte erholte sich später trotzdem. Deshalb kein Stop, aber auch kein Nachkauf unter der Prüfmarke.`;
+    const h = higher(L.a);
+    if (h.richtung === "ab") return `Kein Widerspruch: Die Box ist das Ziel des Abwärtsszenarios (${gw(L.a, h)} %). Der Abverkauf ist der Weg in die Box; von dort führt der Weg zur selben Zielleiter wie im Aufwärtsszenario.`;
     if (L.status === "offen") return `Das Aufwärtsszenario (${gw(L.a, h)} %) ist wahrscheinlicher: Der Kurs erreicht die Box möglicherweise nicht. Dann wird nicht gekauft – das ist kein Fehler der Box.`;
     return "";
   }
@@ -700,6 +700,8 @@ details.fold .in{padding:0 12px 12px}
     if (L.lt.unterkante_original != null || L.lt.oberkante_original != null || L.lt.aenderung) kv.push(["Geändert", esc(L.lt.aenderung || "")]);
     if (L.status === "verpasst" && L.lt.tief != null) kv.push(["Tief", `<span class="mono">${geld(L.lt.tief, L.a)}</span>${L.lt.tief_am?` am ${dat(L.lt.tief_am)}`:''}`]);
     const bv = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.box_vor_ziel1;
+    const wdd = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.wende;
+    if (wdd && ["offen","im_bereich","unter_box"].includes(L.status)) kv.push(["Wende in der Kaufzone", `<b class="ok">${wdd.dreht} %</b> · bricht <b class="bad">${wdd.bricht} %</b> <span style="color:var(--muted)">– Kaufzone ist die Box bis zur Prüfmarke. „Wende“: Kurs steigt 30 % über die Oberkante, bevor eine Woche unter der Prüfmarke schließt. Bricht die Zone, fiel der Kurs in ${wdd.nach_bruch_marke} % der Fälle bis zur harten Marke, und ${wdd.nach_bruch_erholt} % erholten sich später trotzdem.</span>`]);
     const zpd = L.a.wahrscheinlichkeit && L.a.wahrscheinlichkeit.ziel1_vor_pruefmarke;
     if (zpd && ["im_bereich","unter_box"].includes(L.status)) kv.push(["Ziel 1 vor Prüfmarke", `<b>${zpd.ziel1} %</b> <span style="color:var(--muted)">– so oft kam in vergleichbaren Lagen erst Ziel 1 (<span class="mono">${fmt(zpd.ziel1_kurs)}</span>), bevor die Prüfmarke (<span class="mono">${fmt(zpd.pruefmarke_kurs)}</span>) berührt wurde${zpd.keins_3j ? `; ${zpd.keins_3j} % keins in drei Jahren` : ""}</span>`]);
     if (bv && L.status === "offen") kv.push(["Box vor Ziel 1", `<b>${bv.box} %</b> <span style="color:var(--muted)">– so oft wurde in vergleichbaren Lagen erst die Box erreicht; ${bv.ziel1} % zuerst Ziel 1${bv.keins_3j ? `, ${bv.keins_3j} % keins in drei Jahren` : ""}</span>`]);
@@ -778,7 +780,8 @@ details.fold .in{padding:0 12px 12px}
     // Detail: nur Zonen in Reichweite (dazu immer die jeweils erste) - die Übersicht zeigt die ganze Leiter
     zUp.forEach((z, i) => { if (mode !== "detail" || i === 0 || Math.max(...z) < kNow * 1.8) ps.push(...z); });
     zDn.forEach((z, i) => { if (mode !== "detail" || i === 0 || Math.min(...z) > kNow * 0.45) ps.push(...z); });
-    if (box) { ps.push(...box); if (L.stop != null) ps.push(L.stop); if (L.marke != null && !fernMarke) ps.push(L.marke); }
+    if (box) { ps.push(...box); if (L.stop != null) ps.push(L.stop); if (L.marke != null && !fernMarke) ps.push(L.marke);
+      const wd0 = a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende; if (wd0 && wd0.tiefer > 0) ps.push(wd0.tiefer); }
     const vis = wl.filter(w => w.t >= T0 && w.t <= heute);
     let lo = Math.min(...ps), hi = Math.max(...ps);
     const log = mode !== "detail" && hi / lo > 5;
@@ -819,6 +822,12 @@ details.fold .in{padding:0 12px 12px}
     zUp.forEach(z => { const m = (z[0] + z[1]) / 2; A(`<rect x="${xh.toFixed(1)}" y="${y(Math.max(...z)).toFixed(1)}" width="${(X1 - xh).toFixed(1)}" height="${Math.max(1.2, y(Math.min(...z)) - y(Math.max(...z))).toFixed(1)}" fill="${C.grn}" fill-opacity=".14"/>`); A(`<line x1="${xh.toFixed(1)}" y1="${y(Math.min(...z)).toFixed(1)}" x2="${X1}" y2="${y(Math.min(...z)).toFixed(1)}" stroke="${C.grn}" stroke-width="1.1"/>`); badges.push([y(m), "▲ " + fmtC(Math.min(...z)), C.grn, "#000"]); });
     zDn.forEach(z => { const b = bedingt(z), m = (z[0] + z[1]) / 2; A(`<line x1="${xh.toFixed(1)}" y1="${y(Math.max(...z)).toFixed(1)}" x2="${X1}" y2="${y(Math.max(...z)).toFixed(1)}" stroke="${b ? C.redDim : C.red}" stroke-width="1.1"${b ? ' stroke-dasharray="3,3"' : ''}/>`); badges.push([y(m), "▼ " + fmtC(Math.max(...z)), b ? C.redDim : C.red, "#fff"]); });
     A(`</g>`);
+    const rechts = [], linien = [], belegt = [];     // belegt: Wellenlabels links von heute                      // belegte Flaechen und gezeichnete Pfade rechts von heute
+    const kreuzt = (bx, by, bw, bh) => linien.some(pl => pl.some((q, i) => { if (!i) return false; const pq = pl[i - 1], n = Math.ceil(Math.hypot(q[0] - pq[0], q[1] - pq[1]) / 3);
+      for (let t = 0; t <= n; t++) { const sx = pq[0] + (q[0] - pq[0]) * t / n, sy = pq[1] + (q[1] - pq[1]) * t / n; if (sx > bx - 2 && sx < bx + bw + 2 && sy > by - 2 && sy < by + bh + 2) return true; } return false; }));
+    const freiR = (bx, by, bw, bh) => bx >= xh + 2 && bx + bw <= X1 - 2 && by >= Y0 + 2 && by + bh <= Y1 - 2 && !kreuzt(bx, by, bw, bh)
+      && !rechts.concat(belegt).some(([ax, ay, aw, ah]) => bx < ax + aw && bx + bw > ax && by < ay + ah && by + bh > ay);
+    const fibLab = [];
     // Fibonacci-Retracements des tragenden Impulses, beschriftet wie bei HKCM: "78.60% (56.51)"
     if (L.sg && L.sg.fib && box) {
       const hx = Math.max(X0, x(tage(L.sg.impuls.bis_datum)));
@@ -826,9 +835,7 @@ details.fold .in{padding:0 12px 12px}
         if (wert < P0 || wert > P1 || pz === "38.2") continue;
         const yy = y(wert);
         A(`<line x1="${hx.toFixed(1)}" y1="${yy.toFixed(1)}" x2="${X1}" y2="${yy.toFixed(1)}" stroke="#bdbdbd" stroke-opacity=".55" stroke-width=".8" stroke-dasharray="5,4"/>`);
-        const fl = `${Number(pz).toFixed(2)}% (${fmtC(wert)})`, fw_ = fl.length * 5.1 * f;
-        A(`<rect x="${(X1 - 6 - fw_).toFixed(1)}" y="${(yy - 12 * f).toFixed(1)}" width="${(fw_ + 4).toFixed(1)}" height="${(11 * f).toFixed(1)}" fill="#000" fill-opacity=".72"/>`);
-        T(X1 - 4, yy - 3, fl, 8.5, C.grn, "end", 700);
+        fibLab.push([yy, `${Number(pz).toFixed(2)}% (${fmtC(wert)})`]);
       }
     }
     // Box
@@ -839,15 +846,28 @@ details.fold .in{padding:0 12px 12px}
       const S = SYM[wg(a)] || "";
       const ly = yu + 26 * f < Y1 - 14 * f ? yu + 12 * f : yu - yb > 34 * f ? yb + 12 * f : yb - 16 * f;
       const lab = `Long-term Entry: ${S}${fmtC(box[0])} – ${S}${fmtC(box[1])}`;
-      const lx = Math.max(X0 + 4, Math.min(Math.max(xs, X0) + 5, X1 - 5 - lab.length * 6.1 * f));
+      const WDl = a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende;
+      const lx = WDl ? Math.max(X0 + 4, X1 - 5 - lab.length * 6.1 * f) : Math.max(X0 + 4, Math.min(Math.max(xs, X0) + 5, X1 - 5 - lab.length * 6.1 * f));
       T(lx, ly, lab, 10.5, "#fff", "start", 700);
+      rechts.push([lx, ly - 10 * f, lab.length * 6.1 * f, 23 * f]);
       const e0 = eur(box[0], a), e1 = eur(box[1], a);
       if (e0 != null && wg(a) !== "EUR") T(lx, ly + 11.5 * f, `≈ €${fmtC(e0)} – €${fmtC(e1)} (zero)`, 9, "#9ad5ff", "start", 400, true);
       if (L.stop != null && L.stop !== L.marke && L.stop >= P0) { A(`<line x1="${xs.toFixed(1)}" y1="${y(L.stop).toFixed(1)}" x2="${X1}" y2="${y(L.stop).toFixed(1)}" stroke="${C.or}" stroke-width="1.3" stroke-dasharray="2,3"/>`); badges.push([y(L.stop), "Prüfm. " + fmtC(L.stop), C.or, "#000"]); }
       if (L.marke != null) {
-        if (!fernMarke && L.marke >= P0) { A(`<line x1="${X0}" y1="${y(L.marke).toFixed(1)}" x2="${X1}" y2="${y(L.marke).toFixed(1)}" stroke="${C.red}" stroke-width="1.3" stroke-dasharray="8,4"/>`); T(X0 + 4, y(L.marke) + 11 * f, `Marke ${fmtC(L.marke)}` + (L.stop === L.marke ? " = Stop" : ""), 9, C.red, "start", 700, true); }
+        if (!fernMarke && L.marke >= P0) { A(`<line x1="${X0}" y1="${y(L.marke).toFixed(1)}" x2="${X1}" y2="${y(L.marke).toFixed(1)}" stroke="${C.red}" stroke-width="1.3" stroke-dasharray="8,4"/>`); T(X0 + 4, y(L.marke) + 11 * f, `Marke ${fmtC(L.marke)}` + (L.stop === L.marke ? " = Prüfmarke" : ""), 9, C.red, "start", 700, true); }
         else badges.push([Y1 + 40, "Marke " + fmtC(L.marke) + " ↓", C.red, "#fff"]);
       }
+    }
+    fibLab.forEach(([yy, fl]) => {
+      const fw_ = fl.length * 5.1 * f, bh = 11 * f;
+      const kand = [X1 - 6 - fw_, xh + 4];
+      const bx = kand.find(bx => freiR(bx, yy - 12 * f, fw_ + 4, bh));
+      if (bx == null) return;
+      A(`<rect x="${bx.toFixed(1)}" y="${(yy - 12 * f).toFixed(1)}" width="${(fw_ + 4).toFixed(1)}" height="${bh.toFixed(1)}" fill="#000" fill-opacity=".72"/>`);
+      rechts.push([bx, yy - 12 * f, fw_ + 4, bh]);
+      T(bx + fw_ + 2, yy - 3, fl, 8.5, C.grn, "end", 700);
+    });
+    if (box) {
     } else if (lt.status && lt.status !== "offen") {
       const lab = {verpasst: "Long-term Entry: verpasst – kein Einstieg", ungueltig: "Long-term Entry: ungültig", nicht_bestimmbar: "Long-term Entry: nicht bestimmbar", gestoppt: "Absicherung ausgelöst"}[L.status] || "keine Box";
       T(X0 + 6, Y0 + 14 * f, lab + (lt.tief != null ? ` (Tief ${fmtC(lt.tief)})` : ""), 10.5, C.red, "start", 700, true);
@@ -868,7 +888,6 @@ details.fold .in{padding:0 12px 12px}
     A(`<line x1="${xh.toFixed(1)}" y1="${Y0}" x2="${xh.toFixed(1)}" y2="${Y1}" stroke="${C.gry}" stroke-dasharray="4,4" stroke-width=".9"/>`);
     T(xh - 4, Y0 + 10 * f, "heute", 8.5, C.gry, "end");
     // Wellenlabels (Messung links von heute)
-    const belegt = [];
     const frei = (bx, by, bw, bh) => !belegt.some(([ax, ay, aw, ah]) => bx < ax + aw && bx + bw > ax && by < ay + ah && by + bh > ay);
     const nur = vis.length > 14 && mode !== "detail" ? vis.filter(w => RANG(w.label) >= 2) : vis;
     nur.slice().sort((p, q) => RANG(q.label) - RANG(p.label)).forEach(w => {
@@ -892,10 +911,59 @@ details.fold .in{padding:0 12px 12px}
     const pfad = (pts, col, sw, dash, op = 1) => A(`<path d="M ${pts.map(p => p[0].toFixed(1) + "," + p[1].toFixed(1)).join(" L ")}" fill="none" stroke="${col}" stroke-width="${sw}"${dash ? ` stroke-dasharray="${dash}"` : ''}${op < 1 ? ` stroke-opacity="${op}"` : ''} stroke-linejoin="round" stroke-linecap="round"/>`);
     const spitze = (p, q, col) => { const ang = Math.atan2(q[1] - p[1], q[0] - p[0]), l = 7 * f; A(`<path d="M ${q[0].toFixed(1)},${q[1].toFixed(1)} L ${(q[0] - l * Math.cos(ang - 0.45)).toFixed(1)},${(q[1] - l * Math.sin(ang - 0.45)).toFixed(1)} L ${(q[0] - l * Math.cos(ang + 0.45)).toFixed(1)},${(q[1] - l * Math.sin(ang + 0.45)).toFixed(1)} z" fill="${col}"/>`); };
     const linie = (von, zs, xa, xb) => { const pts = [von]; zs.forEach((z, i) => { const zx = xa + (xb - xa) * (i + 1) / zs.length, zy = y((z[0] + z[1]) / 2); if (i > 0) { const [px, py] = pts[pts.length - 1]; pts.push([px + (zx - px) * 0.45, py + (zy - py) * 0.18]); } pts.push([zx, zy]); }); return pts; };
-    const badgeP = (px, py, t) => { const bw = 34 * f, bh = 15 * f; const bx = Math.min(X1 - bw - 2, Math.max(xh + 2, px - bw / 2)); A(`<rect x="${bx.toFixed(1)}" y="${(py - bh - 5).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="#fff"/>`); T(bx + bw / 2, py - 5 - 4 * f, t, 10, "#000", "middle", 700); };
+    const badgeP = (px, py, t) => { const bw = 34 * f, bh = 15 * f; const bx = Math.min(X1 - bw - 2, Math.max(xh + 2, px - bw / 2)); rechts.push([bx, py - bh - 5, bw, bh]); A(`<rect x="${bx.toFixed(1)}" y="${(py - bh - 5).toFixed(1)}" width="${bw.toFixed(1)}" height="${bh.toFixed(1)}" rx="2" fill="#fff"/>`); T(bx + bw / 2, py - 5 - 4 * f, t, 10, "#000", "middle", 700); };
     const fw = X1 - xh;
     A(`<g clip-path="url(#${cid})">`);
     const hauptUp = up && dn ? gw(a, up) >= gw(a, dn) : true;
+    const WD = box && a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende;
+    if (WD) {
+      // HKCM-Darstellung: Hauptszenario = Wende in der Kaufzone (Box bis Prüfmarke), gestrichelt = die Zone bricht
+      const BV = a.wahrscheinlichkeit.box_vor_ziel1;
+      let zs = zDn.filter(z => !bedingt(z) && Math.min(...z) < k * 0.99 && Math.max(...z) <= box[0] * 1.001);
+      if (!zs.length) zs = [[Math.min(k * 0.97, box[0]), Math.max(box[1], L.stop || box[1])]];
+      const xe = xh + fw * 0.38;
+      const pts = linie(start, zs, xh + 4, xe);
+      const [ex, ey] = pts[pts.length - 1];
+      pfad(pts, C.red, 2.4 * f, null); spitze(pts[pts.length - 2], pts[pts.length - 1], C.red); linien.push(pts);
+      // gestrichelte Alternative: Zone bricht, Kurs fällt tiefer
+      const bx_ = ex + fw * 0.2, by_ = y(WD.tiefer);
+      const alt = [[ex, ey], [ex + (bx_ - ex) * 0.45, ey + (by_ - ey) * 0.55], [ex + (bx_ - ex) * 0.62, ey + (by_ - ey) * 0.42], [bx_, by_]];
+      pfad(alt, C.red, 1.9 * f, "7,5", 0.95); spitze(alt[2], alt[3], C.red); linien.push(alt);
+      badgeP(bx_, by_ + 22 * f, WD.bricht + " %");
+      T(bx_ + 20 * f, by_ + 4 * f, "bricht", 9.5, C.red, "start", 700, true);
+      // Hauptpfad: Wende in der Zone, danach zur Zielleiter
+      if (zUp.length) {
+        const cp = linie([ex, ey], zUp, ex + 14, X1 - 8);
+        pfad(cp, C.grn, 2.4 * f, null); spitze(cp[cp.length - 2], cp[cp.length - 1], C.grn); linien.push(cp);
+      }
+      badgeP(ex + 34 * f, ey - 2 * f, WD.dreht + " %");
+      { const bxc = Math.min(X1 - 17 * f - 2, Math.max(xh + 2 + 17 * f, ex + 34 * f)), tw = 32 * f, th = 10 * f;
+        const kand = [[bxc + 20 * f, ey - 9 * f], [bxc - tw / 2, ey - 25 * f], [bxc - tw / 2, ey + 9 * f], [bxc - 17 * f - tw - 3, ey - 9 * f]];
+        const [tx, ty] = kand.find(([tx, ty]) => freiR(tx, ty - th + 2, tw, th)) || kand[0];
+        T(tx, ty, "Wende", 9.5, C.grn, "start", 700, true); rechts.push([tx, ty - th + 2, tw, th]); }
+      if (lt.welle) T(ex - 8 * f, ey - 6 * f, lt.welle.split(" ")[0], 10.5, C.txt, "end", 700);
+      // offene Box: gepunktet der Weg direkt nach oben, ohne die Box
+      if (L.status === "offen" && zUp.length) {
+        const dp = linie(start, zUp, xh + 4, X1 - 8);
+        pfad(dp, C.grn, 1.3 * f, "2,4", 0.8); linien.push(dp);
+        if (BV) {
+          // Beschriftung an eine freie Stelle der gepunkteten Linie
+          const t_ = `ohne Box: ${BV.ziel1} %`, tw = t_.length * 5.3 * f, th = 10 * f;
+          let pos = null;
+          for (let sg_ = 0; sg_ < dp.length - 1 && !pos; sg_++) {
+          const [p0, p1] = [dp[sg_], dp[sg_ + 1]];
+          for (const fr of [0.35, 0.5, 0.65, 0.2, 0.8, 1]) {
+            const qx = p0[0] + (p1[0] - p0[0]) * fr, qy = p0[1] + (p1[1] - p0[1]) * fr;
+            for (const [tx, ty] of [[qx - tw - 4, qy - 6], [qx + 6, qy + 12 * f], [qx + 4, qy - 6]]) {
+              if (freiR(tx, ty - th + 2, tw, th)) { pos = [tx, ty]; break; }
+            }
+            if (pos) break;
+          }
+          }
+          if (pos) { T(pos[0], pos[1], t_, 9, C.grn, "start", 700, true); rechts.push([pos[0], pos[1] - th + 2, tw, th]); }
+        }
+      }
+    } else {
     if (dn && zDn.length) {
       let zs = zDn.filter(z => !bedingt(z)); if (!zs.length) zs = zDn.slice(0, 1);
       const xe = xh + fw * (box ? 0.4 : 0.55);
@@ -914,6 +982,7 @@ details.fold .in{padding:0 12px 12px}
       const pts = linie(start, zUp, xh + 4, X1 - 8);
       pfad(pts, C.grn, 2.4 * f, hauptUp ? null : "7,5"); spitze(pts[pts.length - 2], pts[pts.length - 1], C.grn);
       const [ex, ey] = pts[pts.length - 1]; badgeP(ex, ey, gw(a, up) + " %");
+    }
     }
     A(`</g>`);
     // Aktueller Kurs
@@ -1029,6 +1098,10 @@ details.fold .in{padding:0 12px 12px}
       ${posL.length?`<section class="blk"><h3>Die Box als Position</h3>${posL.map(x=>posBlock(a,x.p,x.i)).join("")}</section>`:''}
       ${a.chart_anfang_url?`<details class="fold"><summary>Chart vom Analysetag</summary><div class="in"><div class="bild"><img src="${esc(a.chart_anfang_url)}" alt="Chart vom Analysetag ${esc(a.instrument)}" loading="lazy"></div>${a.chart_detail_url?`<div class="bild"><img src="${esc(a.chart_detail_url)}" alt="Detailchart vom Analysetag" loading="lazy"></div>`:''}<div class="cap">${a.chart_anfang_art==="original"?`Original vom ${dat(a.datum)}, mit Wellenzählung.`:`Auf den Stand vom ${dat(a.datum)} nachgezeichnet.`}</div></div></details>`:''}
       <details class="fold"><summary>Herleitung · zwei Szenarien</summary><div class="in">
+        ${a.wahrscheinlichkeit && a.wahrscheinlichkeit.wende && L.box ? (() => { const wz = a.wahrscheinlichkeit.wende, bv2 = a.wahrscheinlichkeit.box_vor_ziel1; return `
+        <div class="bar"><i class="up" style="width:${wz.dreht}%"></i><i class="dn" style="width:${wz.bricht}%;opacity:.55"></i></div>
+        <div class="legend"><span><b>▲ ${wz.dreht} %</b> Wende in der Kaufzone</span><span>▼ ${wz.bricht} % Zone bricht</span></div>
+        <div class="note" style="margin:-4px 0 10px;font-size:12.5px">Hauptszenario (im Chart durchgezogen): Der Kurs dreht in der Kaufzone <span class="mono">${fmt(wz.zone_oben)}</span> bis <span class="mono">${fmt(wz.zone_unten)}</span> und läuft zur Zielleiter. Alternative (gestrichelt): Die Zone bricht, der Kurs fällt tiefer, typisch bis etwa <span class="mono">${fmt(wz.tiefer)}</span>.${bv2 && L.status === "offen" ? ` Ob der Kurs die Zone überhaupt erreicht: Box vor Ziel 1 in ${bv2.box} % der vergleichbaren Lagen, direkt hoch in ${bv2.ziel1} % (gepunktet).` : ""} Gemessen an 1.198 Berührungen in 182 Titeln, geprüft ab 2012.</div>`; })() : ""}
         <div class="bar"><i class="${h.richtung==='auf'?'up':'dn'}" style="width:${gw(a,h)}%"></i><i class="${o.richtung==='auf'?'up':'dn'}" style="width:${gw(a,o)}%;opacity:.45"></i></div>
         <div class="legend"><span><b>${h.richtung==='auf'?'▲':'▼'} ${gw(a,h)} %</b> ${h.richtung==='auf'?'aufwärts':'abwärts'}</span><span>${o.richtung==='auf'?'▲':'▼'} ${gw(a,o)} % ${o.richtung==='auf'?'aufwärts':'abwärts'}</span></div>
         ${WS(a) ? `<div class="note" style="margin:-4px 0 10px;font-size:12.5px">Datenbasiert: Wie oft wurde das nächste Aufwärtsziel (<span class="mono">${fmt(WS(a).ziel_auf)}</span>) vor dem nächsten Abwärtsziel (<span class="mono">${fmt(WS(a).ziel_ab)}</span>) erreicht – aus 800.000 vergleichbaren Kurslagen in 182 Titeln, an einem getrennten Zeitraum geprüft. Die Analyse hatte ${a.szenarien.map(x => `${x.richtung==='auf'?'▲':'▼'} ${x.gewicht} %`).join(" · ")} angesetzt. In drei Jahren keins von beiden: ${WS(a).keins_3j} %. Ziele näher als 5 % am Kurs zählen nicht – sie sind Rauschen.<br><b>Nicht verwechseln:</b> Diese Prozente sagen, welches der beiden nächsten Ziele zuerst kommt. Ob sich ein Kauf in der Box über Jahre lohnt, sagt die Signalqualität.</div>` : ""}
