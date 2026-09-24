@@ -706,7 +706,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
       <div><div class="k">${p.stop_basis === "pruefmarke" ? "Prüfmarke" : "Stop"} · ${esc(wg(a))}</div><div class="v mono">${fmt(p.stop)}</div>${p.stop_basis === "pruefmarke" ? `<div class="k" style="margin-top:4px;text-transform:none;letter-spacing:0">kein Verkauf</div>` : ""}</div>
       <div><div class="k">${p.typ==="lte"?"Ziel 1":"Take-Profit"} · ${esc(wg(a))}</div><div class="v mono">${fmt(p.take_profit)}</div></div></div>
       <div class="r">${stateLine(a, p, st)}</div>
-      <div class="r">${p.typ==="lte"?"Ziel 1 ist die Messgröße des Journals, nicht der Ausstieg; gehalten wird über Jahre. Eine Prüfmarke löst keinen Verkauf aus.":`Geplantes R <b>${rgep!=null?rgep.toFixed(2).replace('.',','):'–'}</b> · Stop auf ${p.stop_basis==="intraday"?"Intraday":"Wochenschluss"}basis`}${p.nur_statistik?' · <span class="bad">nur Statistik – Short-Bereiche verloren im Rückvergleich im Mittel 0,3 R je Trade</span>':''}</div></div>`;
+      <div class="r">${p.typ==="lte"?`Ziel 1 ist die Messgröße des Journals, nicht der Ausstieg. Eine Prüfmarke löst keinen Verkauf aus.${st && st.eingestiegen_am ? ` <b>Prüfdatum ${dat(new Date(new Date(st.eingestiegen_am + "T00:00:00").getTime() + 3 * 365.25 * 864e5).toISOString().slice(0, 10))}</b>: Im Rückvergleich war es im Mittel am besten, die Box-Position nach etwa drei Jahren zu beenden und das Geld in den ETF zurückzulegen.` : " Gehalten wird über Jahre – im Rückvergleich im Mittel etwa drei Jahre."}`:`Geplantes R <b>${rgep!=null?rgep.toFixed(2).replace('.',','):'–'}</b> · Stop auf ${p.stop_basis==="intraday"?"Intraday":"Wochenschluss"}basis`}${p.nur_statistik?' · <span class="bad">nur Statistik – Short-Bereiche verloren im Rückvergleich im Mittel 0,3 R je Trade</span>':''}</div></div>`;
   }
 
   // Wie hängen Box und wahrscheinlicheres Szenario zusammen? Die Box ist das Ziel der Korrektur –
@@ -956,7 +956,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     });
     if (box) {
     } else if (lt.status && lt.status !== "offen") {
-      const lab = {verpasst: "Long-term Entry: verpasst – kein Einstieg", ungueltig: "Long-term Entry: ungültig", nicht_bestimmbar: "Long-term Entry: nicht bestimmbar", gestoppt: "Absicherung ausgelöst"}[L.status] || "keine Box";
+      const lab = {verpasst: "Long-term Entry: verpasst – kein Einstieg", ungueltig: "Long-term Entry: ungültig", nicht_bestimmbar: "Long-term Entry: nicht bestimmbar", gestoppt: "Prüfmarke gebrochen – nicht nachkaufen"}[L.status] || "keine Box";
       T(X0 + 6, Y0 + 14 * f, lab + (lt.tief != null ? ` (Tief ${fmtC(lt.tief)})` : ""), 10.5, C.red, "start", 700, true);
     }
     // Kerzen (auf die Zeichenflaeche beschnitten)
@@ -1181,7 +1181,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
       <section class="blk">${lteDetail(L)}</section>
       <section class="blk"><div class="tog"><button data-m="detail">Detail</button><button data-m="uebersicht">Übersicht${(a.wellen||[]).length?' · Zählung':''}</button><span class="sp"></span><button id="voll">Vollbild ⤢</button></div>
         <div class="cv" id="cv"></div>
-        <div class="note" style="margin-top:6px">Täglich aktueller Chart. Blau: die Box${L.sp.length?' (heller: Kern)':''}. Orange: Stop. Rot gestrichelt: harte Marke. Roter Pfad: in die Box, grün „danach ▲“: von dort zur Zielleiter. Tippen für Vollbild.</div></section>
+        <div class="note" style="margin-top:6px">Täglich aktueller Chart. Blau: die Box${L.sp.length?' (heller: Kern)':''}. Orange: Prüfmarke. Rot gestrichelt: harte Marke. Roter Pfad in die Box mit der Wahrscheinlichkeit der Wende, grün von dort zur Zielleiter; rot gestrichelt: die Zone bricht. Tippen für Vollbild.</div></section>
       ${posL.length?`<section class="blk"><h3>Die Box als Position</h3>${posL.map(x=>posBlock(a,x.p,x.i)).join("")}</section>`:''}
       ${a.chart_anfang_url?`<details class="fold"><summary>Chart vom Analysetag</summary><div class="in"><div class="bild"><img src="${esc(a.chart_anfang_url)}" alt="Chart vom Analysetag ${esc(a.instrument)}" loading="lazy"></div>${a.chart_detail_url?`<div class="bild"><img src="${esc(a.chart_detail_url)}" alt="Detailchart vom Analysetag" loading="lazy"></div>`:''}<div class="cap">${a.chart_anfang_art==="original"?`Original vom ${dat(a.datum)}, mit Wellenzählung.`:`Auf den Stand vom ${dat(a.datum)} nachgezeichnet.`}</div></div></details>`:''}
       <details class="fold"><summary>Herleitung · zwei Szenarien</summary><div class="in">
@@ -1197,7 +1197,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
         <div class="note" style="margin-top:8px">Die Gewichtung ist eine Strukturaussage, keine Zeitprognose. Die Richtungszuordnung ist die gemessen schwächere Seite der Methode; die Zonenrechnung die stärkere.</div>
       </div></details>
       ${wellenTabelle(a)}
-      ${a.bericht_url?`<details class="fold" id="ber"><summary>Vollständiger Bericht</summary><div class="in md" id="ber-in">Lade …</div></details>`:''}
+      ${a.bericht_url?`<details class="fold" id="ber"><summary>Bericht der Analyse</summary><div class="in md" id="ber-in">Lade …</div></details>`:''}
       ${verlauf.length?`<details class="fold"><summary>Verlauf der Box</summary><div class="in vl">${verlauf.map(v=>`<span><span>${(ST[v.status]||{}).t||v.status}</span><span class="mono">seit ${dat(v.seit)} · ${fmt(v.kurs)}</span></span>`).join("")}</div></details>`:''}
       ${a.extern?`<section class="blk"><h3>HKCM zum Vergleich · Stand Analysetag</h3><div class="ext"><div class="src">${esc(a.extern.quelle)}${a.extern.datum?` · ${dat(a.extern.datum)}`:''}${a.extern.titel?`<br>„${esc(a.extern.titel)}“`:''}</div>
         <div class="cmp"><div><div class="k">Agent</div><div class="v ${hA.richtung==='auf'?'ok':'bad'}">${hA.richtung==='auf'?'▲':'▼'} ${hA.gewicht} %</div></div><div><div class="k">HKCM</div><div class="v ${a.extern.richtung==='auf'?'ok':'bad'}">${a.extern.richtung==='auf'?'▲':'▼'} ${a.extern.gewicht??'–'}${a.extern.gewicht!=null?' %':''}</div></div></div>
@@ -1252,6 +1252,19 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
   }
 
   let BT = null;
+  function lteDepotBlock() {
+    const d = BT && BT.lte_depot; if (!d) return "";
+    const a = d["alle Signale · 10 % je Box"] || {}, sp = d.sp500 || {};
+    const pc0 = v => v == null ? "–" : (v > 0 ? "+" : "") + (v * 100).toFixed(1).replace(".", ",") + " %";
+    const z = (nm, x) => x ? `<tr><td>${nm}</td><td class="n">${pc0(x["1995-2011"].cagr)}</td><td class="n">${Math.round(x["1995-2011"].max_dd * 100)} %</td><td class="n">${pc0(x["2012-2026"].cagr)}</td><td class="n">${Math.round(x["2012-2026"].max_dd * 100)} %</td></tr>` : "";
+    return `<div class="pb"><h2>Box-Depot im Rückvergleich · gegen den ETF</h2>
+      <div class="note" style="margin-bottom:8px">So gerechnet, wie man es real machen würde: Das Geld liegt im S&amp;P-500-ETF. Berührt ein Titel seine Box, gehen 10 % des Depots nach dem Kaufplan in die Box; nicht gefüllte Stufen bleiben Bargeld. Rendite p. a. und größter Rückgang.</div>
+      <div style="overflow-x:auto"><table><tr><th>Vorgehen</th><th class="n">1995–2011</th><th class="n">Rückg.</th><th class="n">2012–2026</th><th class="n">Rückg.</th></tr>
+        <tr><td>nur S&amp;P-500-ETF</td><td class="n">+${String(sp["1995-2011"]).replace(".", ",")} %</td><td class="n">−56 %</td><td class="n">+${String(sp["2012-2026"]).replace(".", ",")} %</td><td class="n">−32 %</td></tr>
+        ${z("<b>Boxen, 3 Jahre halten</b>", a["3 Jahre halten"])}${z("Boxen, 5 Jahre halten", a["5 Jahre halten"])}${z("Boxen, am alten Hoch verkaufen", a["am alten Hoch verkaufen"])}${z("Boxen, nach +100 % unter die 40-Wochen-Linie", a["nach +100 %: Wochenschluss unter 40-Wochen-Linie"])}</table></div>
+      <div class="note" style="margin-top:6px">Die Boxen schlagen den ETF in beiden Zeiträumen; drei Jahre Haltedauer war im Mittel am besten und hatte kleinere Rückgänge. Sicher ist das nicht: Je Zeitraum gab es nur 40–55 Boxen, einzelne große Gewinner entscheiden viel. Deshalb zeigt jede Box-Position ein Prüfdatum drei Jahre nach dem ersten Kauf.</div></div>`;
+  }
+
   function backtestBlock() {
     if (!BT) return "";
     const t = BT.plan_nach_qualitaet && BT.plan_nach_qualitaet["Box 78,6-88,7 %"];
@@ -1304,7 +1317,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
         ${hinweis?`<div class="note" style="margin-top:8px">${hinweis}</div>`:''}</div>`;
     };
     $("#pnl").innerHTML = block("Long-term Entry · kaufen und halten", grp.lte, "„Ziel“ ist bei der Box nur der Messpunkt Ziel 1 – gehalten wird weiter; die Spalte zeigt dann zusätzlich den Stand seit Einstieg. Gekauft wird nach dem Kaufplan; eine gebrochene Prüfmarke löst keinen Verkauf aus.")
-      + backtestBlock();
+      + lteDepotBlock() + backtestBlock();
   }
 
   function renderStatLte() {
