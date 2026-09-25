@@ -310,6 +310,20 @@ details.fold .in{padding:0 12px 12px}
 .btn[disabled]{opacity:.5;cursor:default}
 .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(84px + env(safe-area-inset-bottom));background:var(--text);color:var(--bg);padding:10px 16px;border-radius:10px;font-size:14px;box-shadow:var(--shadow);z-index:50;max-width:calc(100% - 32px)}
 .queue{margin:18px 16px 10px}
+.kand{margin:18px 16px 0}
+.kd{background:var(--bg);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:8px}
+.kd .row{display:flex;justify-content:space-between;align-items:baseline;gap:10px}
+.kd .name{font-family:"IBM Plex Sans Condensed",sans-serif;font-size:16px;font-weight:600}
+.kd .sym{font-size:12px;color:var(--muted);margin-left:6px}
+.kd .px{font-size:14px;font-weight:500;white-space:nowrap}
+.kd .g{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:8px}
+.kd .g div{background:var(--surf2);border-radius:8px;padding:5px 8px}
+.kd .g .k{font-size:9.5px;text-transform:uppercase;letter-spacing:.06em;color:var(--muted)}
+.kd .g .v{font-size:13px;font-weight:600;font-variant-numeric:tabular-nums}
+.kd .l3{display:flex;justify-content:space-between;align-items:center;gap:8px;font-size:12px;color:var(--muted);margin-top:7px;flex-wrap:wrap}
+.kreq{border:1px solid var(--acc);background:transparent;color:var(--acc);border-radius:9px;padding:7px 11px;font:inherit;font-size:13px;font-weight:500;cursor:pointer;min-height:36px}
+.kreq[disabled]{opacity:.55;cursor:default}
+.kd .l3 .kreq{margin-left:auto}.kd .l3 .chip{margin-left:auto}.kd .l3 .chip+.kreq{margin-left:0}
 .queue h2{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);font-weight:600;margin-bottom:8px}
 .q{display:flex;justify-content:space-between;align-items:center;background:var(--surf);border:1px solid var(--line);border-radius:12px;padding:10px 12px;margin-bottom:6px;font-size:14px;gap:8px}
 .q .s{font-size:12px;padding:4px 9px;border-radius:7px;white-space:nowrap}
@@ -419,6 +433,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     </div>
     <div class="count" id="count"></div>
     <div class="list" id="list"><div class="empty">Lade Journal …</div></div>
+    <div class="kand" id="kand"></div>
     <div class="queue" id="queue" hidden></div>
   </section>
   <section class="view nur-lang" id="v-reviews" hidden>
@@ -649,6 +664,47 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     $("#count").textContent = SUCHE ? `${rows.length} Treffer` : (FILTER === "alle" ? "Sortiert: erst in der Box, dann nach Nähe zur Box" : `${rows.length} Titel ${lbl}`);
     $("#list").innerHTML = rows.length ? rows.map(r => card(r.a)).join("") : `<div class="empty">${SUCHE ? "Kein Titel passt zur Suche." : `Derzeit steht kein Titel ${lbl}.`}</div>`;
   }
+
+  // Kandidaten für starke Signale (hkcm-kandidaten.py, Belege Y): Titel in gesunden Aufwärtsimpulsen, deren Box –
+  // wenn sie erreicht wird – im Rückvergleich fast immer ein starkes Signal war. Zum Anfordern der Analyse.
+  let KD = null, KD_ALLE = false;
+  function kdZeile(x) {
+    const schnell = x.wochen_seit_hoch <= 26;
+    const hin = schnell ? `stark bei Berührung bis ${dat(x.schnell_bis)}, danach nur bei marktweitem Abverkauf` : "stark nur bei marktweitem Abverkauf, sonst mittel";
+    return `<div class="kd"><div class="row"><div><span class="name">${esc(x.name)}</span><span class="sym mono">${esc(x.sym)}</span></div><div class="px mono">${tgeld(x.kurs, x.waehrung)}</div></div>
+      <div class="g"><div><div class="k">Box ab (ca.)</div><div class="v mono">${fmt(x.ober)}</div></div><div><div class="k">Kurs darüber</div><div class="v">${pct(x.abstand_pct)}</div></div><div><div class="k">Erreicht 1 · 3 J.</div><div class="v">${x.p1j} · ${x.p3j} %</div></div></div>
+      <div class="l3"><span>${x.phase === "faellt" ? "Korrektur läuft" : "Impuls läuft"} · ${pct(x.vom_hoch_pct)} vom Hoch (${dat(x.H_datum)}) · Faktor ${x.faktor.toFixed(2).replace(".", ",")}${x.klasse ? ` · ${esc(x.klasse)}` : ""}</span></div>
+      <div class="l3"><span>Signal: ${hin}</span>${x.angefragt ? `<span class="chip acc">angefordert</span>` : `${x.excel ? `<span class="chip">in der Excel-Liste</span>` : ""}<button class="kreq" data-kd="${esc(x.sym)}">Analyse anfordern</button>`}</div></div>`;
+  }
+  function renderKand() {
+    const el = $("#kand");
+    const alle = KD && KD.liste ? KD.liste.filter(x => !x.im_journal) : [];
+    const rows = alle.filter(x => !SUCHE || norm(x.name).includes(SUCHE) || norm(x.sym).includes(SUCHE) || norm(x.klasse || "").includes(SUCHE));
+    if (!rows.length) { el.innerHTML = ""; return; }
+    const war = el.querySelector("details");
+    const offen = (war && war.open) || !!SUCHE;
+    const zeig = SUCHE || KD_ALLE ? rows : rows.slice(0, 15);
+    const b = KD.bilanz || {}, r = b.rendite || [];
+    el.innerHTML = `<details class="fold"${offen ? " open" : ""}><summary>Kandidaten für starke Signale · ${rows.length}</summary><div class="in">
+      <div class="note" style="margin-bottom:8px">Titel in einem gesunden Aufwärtsimpuls: Hoch über dem vorigen Haupthoch, Ursprung über dem vorigen Haupttief, Hoch höchstens das Vierfache des Ursprungs. Wurde ihre Box erreicht, war das Signal im Rückvergleich in <b>${b.stark} %</b> der Fälle stark und fast nie schwach. ${KD.markt_baer ? "Der S&amp;P 500 steht unter seiner 40-Wochen-Linie – Boxen, die jetzt erreicht werden, zählen den marktweiten Abverkauf mit." : "Der S&amp;P 500 steht über seiner 40-Wochen-Linie – die meisten dieser Boxen werden erst in der nächsten Korrektur erreicht."} Sortiert nach Nähe zur Box; „Anfordern“ legt die Analyse in die Warteschlange (eine nach der anderen).</div>
+      <details class="fold" style="margin-bottom:10px;background:var(--bg)"><summary>Rückvergleich und Grenzen</summary><div class="in"><div class="note">${KD.titel_geprueft} Titel, Stichtage 1995–2023. Die Box eines Kandidaten wurde in gut der Hälfte der Fälle innerhalb von drei Jahren erreicht (je näher der Kurs, desto öfter – siehe „Erreicht 1 · 3 J.“). Erreichte Boxen: ${b.stark} % stark, ${b.schwach} % schwach; bei den übrigen Aufwärtsimpulsen ${b.andere_stark[0]}–${b.andere_stark[1]} % stark und ${b.andere_schwach[0]}–${b.andere_schwach[1]} % schwach. Rendite drei Jahre nach dem Kauf in der Box, Median: ${r.map(x => `<b>${pct(x.kandidaten)}</b> (${x.zeit.replace("-", "–")}; Zufallstitel derselben Woche ${pct(x.zufall)})`).join(", ")}; schwache Signale der übrigen Titel nur ${r.map(x => pct(x.andere_schwach)).join(" und ")}. Ein starkes Signal eines Kandidaten brachte nicht mehr als andere starke Signale – der Vorteil liegt darin, schwache zu meiden. „Box ab“ ist eine mechanische Vorschau (${String(Math.round(KD.box[0] * 1000) / 10).replace(".", ",")}–${String(Math.round(KD.box[1] * 1000) / 10).replace(".", ",")} % des Impulses); die Analyse setzt die eigentliche Box, und steigt der Kurs weiter, wandert sie mit.</div></div></details>
+      ${zeig.map(kdZeile).join("")}
+      ${rows.length > zeig.length ? `<button class="kreq" id="kd-alle" style="width:100%">Alle ${rows.length} zeigen</button>` : ""}
+    </div></details>`;
+  }
+  $("#kand").addEventListener("click", async e => {
+    if (e.target.id === "kd-alle") { KD_ALLE = true; renderKand(); return; }
+    const b = e.target.closest("button[data-kd]"); if (!b) return;
+    const x = KD.liste.find(k => k.sym === b.dataset.kd); if (!x) return;
+    b.disabled = true;
+    try {
+      const body = new URLSearchParams({"form-name": "wunsch", "instrument": `${x.name} (${x.sym})`});
+      await fetch("https://wellenjournal.netlify.app/", {method: "POST", mode: "no-cors", headers: {"Content-Type": "application/x-www-form-urlencoded"}, body});
+      x.angefragt = true; toast(`„${x.name}“ angefordert – der nächste Lauf nimmt es auf.`);
+      WUENSCHE.unshift({instrument: x.name, symbol: x.sym, status: "offen", angelegt_am: new Date().toISOString(), quelle: "netlify-form"});
+      renderQueue(); renderKand();
+    } catch (err) { toast("Konnte nicht senden – bitte später noch einmal versuchen."); b.disabled = false; }
+  });
 
   function renderQueue() {
     const f = w => !SUCHE || norm(w.instrument).includes(SUCHE);
@@ -1734,7 +1790,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
   sucheEl.addEventListener("input", () => {
     SUCHE = norm(sucheEl.value.trim());
     $("#suche-x").hidden = !sucheEl.value;
-    renderList(); renderReviews(); renderQueue(); renderTrading(); renderTradingReviews();
+    renderList(); renderReviews(); renderQueue(); renderKand(); renderTrading(); renderTradingReviews();
   });
   $("#suche-x").addEventListener("click", () => { sucheEl.value = ""; sucheEl.dispatchEvent(new Event("input")); sucheEl.focus(); });
   sucheEl.addEventListener("keydown", e => { if (e.key === "Escape") { sucheEl.value = ""; sucheEl.dispatchEvent(new Event("input")); } });
@@ -1770,13 +1826,14 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
       META = d; DATA = (d.analysen || []).filter(a => a && a.id && a.szenarien && a.quelle !== "backtest");
       try { const rb = await fetch("backtest.json", {cache: "no-store"}); if (rb.ok) BT = await rb.json(); } catch (e) {}
       try { const rt = await fetch("trading.json", {cache: "no-store"}); if (rt.ok) TR = await rt.json(); } catch (e) {}
+      try { const rk = await fetch("kandidaten.json", {cache: "no-store"}); if (rk.ok) KD = await rk.json(); } catch (e) {}
       for (const k in TK) delete TK[k];
       WUENSCHE = d.wuensche || []; FX = d.fx || {};
       for (const k in KURSE) delete KURSE[k];
       const fxl = Object.entries(FX).map(([w,f]) => `EUR/${w} ${f.je_euro.toLocaleString("de-DE",{minimumFractionDigits:4,maximumFractionDigits:4})}`).join(" · ");
       $("#s-fx").hidden = !fxl; $("#s-fxv").textContent = fxl;
       $("#s-stand").textContent = d.stand ? new Date(d.stand).toLocaleString("de-DE", {day:"2-digit", month:"2-digit", hour:"2-digit", minute:"2-digit"}) : "–";
-      renderLangSet(); renderStatus(); renderNeu(); renderList(); renderStatLte(); renderStat(); renderQueue(); renderReviews(); renderBilanz();
+      renderLangSet(); renderStatus(); renderNeu(); renderList(); renderStatLte(); renderStat(); renderQueue(); renderKand(); renderReviews(); renderBilanz();
       renderTrading(); renderTradingReviews(); renderTradingBilanz();
       if (manuell) toast("Aktualisiert – Stand " + (MODUS === "trade" ? $("#t-stand").textContent : $("#s-stand").textContent));
       const [h, hm] = decodeURIComponent(location.hash.slice(1)).split(":");
