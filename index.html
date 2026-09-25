@@ -1394,7 +1394,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     if (n < 1) return {n: 0, einsatz: 0, risiko: 0, begrenzt};
     return {n, einsatz: n * e, risiko: n * (e - s), begrenzt};
   }
-  const stufeChip = x => x.stufe === "A" ? `<span class="sig stark">A · beste Erwartung</span>` : x.stufe ? `<span class="sig vorlaeufig">B</span>` : "";
+  const stufeChip = x => x.variante ? `<span class="sig vorlaeufig" title="${esc(x.variante_text || "")}">Variante ${esc(x.variante)}</span>` : "";
   const trifftT = x => !SUCHE || norm(x.name).includes(SUCHE) || norm(x.sym).includes(SUCHE);
 
   function sigCard(x) {
@@ -1407,7 +1407,7 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
         <div><div class="k">Stop</div><div class="v mono">${fmt(x.stop)}</div><div class="e" style="color:var(--dn)">−${pc1(x.risiko_pct)}</div></div>
         <div><div class="k">Ziel</div><div class="v mono">${fmt(x.ziel)}</div><div class="e" style="color:var(--up)">+${pc1((x.ziel / x.limit - 1) * 100)}</div></div></div>
       <div class="pbar" title="Ziel vor Stop"><i style="width:${x.p || 0}%"></i></div>
-      <div class="l3"><span>Ziel vor Stop <b>${x.p != null ? x.p + " %" : "–"}</b> · Chance/Risiko <b>${x.crv != null ? x.crv.toFixed(1).replace(".", ",") : "–"}</b> · Erwartung <b>${pR(x.ev)}</b></span><span>${st && st.n ? `<b>${st.n} Stück</b> ≈ ${fmt(st.einsatz)} €` : ""}</span></div>
+      <div class="l3"><span>Chance/Risiko <b>${x.crv != null ? x.crv.toFixed(1).replace(".", ",") : "–"} : 1</b> · Ziel vor Stop im Mittel <b>${x.p != null ? x.p + " %" : "–"}</b></span><span>${st && st.n ? `<b>${st.n} Stück</b> ≈ ${fmt(st.einsatz)} €` : ""}</span></div>
     </button>`;
   }
 
@@ -1447,20 +1447,19 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     const frei = Math.max(0, maxPos - (TR.offen || []).filter(x => x.live).length);
     // Tagesplan (im Rückvergleich geprüft, Belege W): Kauflimits für ALLE Signale, deren Kurs höchstens 5 % über dem Limit steht.
     // Nur so viele Limits wie freie Plätze zu legen, kostete zwei Drittel des Ertrags - die meisten Limits werden nie gefüllt.
-    const byEv = (a, b) => (b.ev ?? -9) - (a.ev ?? -9);
-    const plan = frei ? sig.filter(x => x.abstand_pct <= 5).sort(byEv) : [];
+    const plan = frei ? sig.filter(x => x.abstand_pct <= 5).sort((a, b) => a.abstand_pct - b.abstand_pct) : [];
     const bald = sig.filter(x => x.abstand_pct > 5 && x.abstand_pct <= 10).sort((a, b) => a.abstand_pct - b.abstand_pct);
     const rest = sig.filter(x => !plan.includes(x) && !bald.includes(x));
     const neu = sig.filter(x => x.neu).length;
     const anpassen = plan.filter(x => x.geaendert);
-    const streichen = (TR.entfallen || []).filter(trifftT);
-    const tp = TR.backtest && TR.backtest.tagesplan && TR.backtest.tagesplan["alle <= 5 %"];
+    const streichen = (TR.entfallen || []).filter(x => trifftT(x) && !String(x.grund).startsWith("gefüllt"));
+    const dpt = TR.backtest && TR.backtest.depot;
     el.innerHTML = `${einstellungen()}
       <div class="tt"><div><div class="k">Kauflimits</div><div class="v">${sig.length}</div></div><div><div class="k">Offen (live)</div><div class="v" style="color:var(--acc)">${offenLive.length}</div></div><div><div class="k">Neu heute</div><div class="v" style="color:var(--up)">${neu}</div></div></div>
       ${offenLive.length ? `<div class="th2">Offene Trades<span>Stop und Ziel als Aufträge im Depot</span></div><div class="tl">${offenLive.map(offenCard).join("")}</div>` : ""}
       ${streichen.length ? `<div class="th2">Aufträge streichen<span>seit dem letzten Lauf entfallen</span></div><div class="tl">${streichen.map(x => `<div class="trr sl" style="cursor:default"><span class="n">${esc(x.name)} <span class="sym mono" style="font-size:12px;color:var(--muted);font-weight:400">${esc(x.sym)}</span></span><span class="r mono">${fmt(x.limit)}</span><span class="s" style="grid-column:1/-1">${esc(x.grund)}</span></div>`).join("")}</div>` : ""}
       <div class="th2">Tagesplan · Kauflimits für den nächsten Handelstag<span>${frei} von ${maxPos} Plätzen frei</span></div>
-      <div class="count" style="margin-top:-2px">${frei ? `Für <b>alle</b> Signale, deren Kurs höchstens 5 % über dem Limit steht, ein Kauflimit legen – nicht nur für so viele, wie Plätze frei sind: Die meisten Limits werden nie gefüllt. Sobald ${maxPos} Positionen offen sind, die übrigen Limits streichen.${tp ? ` Im Rückvergleich brachte genau dieses Vorgehen ${pct(tp["1995-2011"].cagr)} p. a. (1995–2011) und ${pct(tp["2012-2026"].cagr)} p. a. (2012–2026), typisch ${tp["2012-2026"].auftraege_median} Aufträge am Abend.` : ""} Das Limit wird täglich neu gerechnet – macht der Kurs neue Hochs, wandert es mit.` : `<b>Depot voll</b> (${maxPos} Positionen offen): keine neuen Kauflimits legen und die bestehenden streichen, bis ein Trade endet.`}</div>
+      <div class="count" style="margin-top:-2px">${frei ? `Für <b>alle</b> Signale, deren Kurs höchstens 5 % über dem Limit steht, ein Kauflimit legen – nicht nur für so viele, wie Plätze frei sind: Die meisten Limits werden nie gefüllt. Sobald ${maxPos} Positionen offen sind, die übrigen Limits streichen.${dpt ? ` Im Rückvergleich brachte genau dieses Vorgehen ${pct(dpt["1995-2011"].cagr)} p. a. (1995–2011) und ${pct(dpt["2012-2026"].cagr)} p. a. (2012–2026), typisch ${dpt["2012-2026"].auftraege_median} Aufträge am Abend.` : ""} Das Limit wird täglich neu gerechnet – macht der Kurs neue Hochs, wandert es mit.` : `<b>Depot voll</b> (${maxPos} Positionen offen): keine neuen Kauflimits legen und die bestehenden streichen, bis ein Trade endet.`}</div>
       ${anpassen.length ? `<div class="alarm" style="margin-top:0">Limit geändert – Auftrag anpassen: ${anpassen.map(x => `<b>${esc(x.name)}</b> ${fmt(x.limit_gestern)} → ${fmt(x.limit)}`).join(" · ")}</div>` : ""}
       <div class="tl">${plan.length ? plan.map(sigCard).join("") : frei ? `<div class="empty">Heute steht kein Signal höchstens 5 % über seinem Limit.</div>` : ""}</div>
       ${bald.length ? `<details class="fold" style="margin:14px 16px 0"><summary>Bald im Plan · 5–10 % über dem Limit · ${bald.length}</summary><div class="in"><div class="note" style="margin-bottom:8px">Noch kein Auftrag nötig. Fällt der Kurs weiter, rücken sie in den Tagesplan.</div><div class="tl" style="padding:0">${bald.map(sigCard).join("")}</div></div></details>` : ""}
@@ -1526,33 +1525,27 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
   function renderTradingBilanz() {
     const el = $("#t-bilanz");
     const bt = TR && TR.backtest;
-    if (!bt) { el.innerHTML = `<div class="empty">Kein Rückvergleich geladen.</div>`; return; }
-    const d = bt.depot || {}, a = d["1995-2011"] || {}, b = d["2012-2026"] || {}, g = d["2000-2026"] || {};
+    if (!bt || !bt.depot) { el.innerHTML = `<div class="empty">Kein Rückvergleich geladen.</div>`; return; }
+    const d = bt.depot, a = d["1995-2011"] || {}, b = d["2012-2026"] || {}, g = d["2000-2026"] || {};
     const zeile = (nm, x) => x ? `<tr><td>${nm}</td><td class="n">${x.n.toLocaleString("de-DE")}</td><td class="n">${x.treffer} %</td><td class="n">${pR(x.r_mittel)}</td><td class="n">${pct(x.ret_mittel)}</td><td class="n">${x.tage}</td></tr>` : "";
     const jr = Object.entries(bt.jahresrenditen || {});
-    const jmax = Math.max(...jr.map(([, v]) => Math.abs(v)), 1);
     el.innerHTML = `<div class="count">Die Regel mechanisch über ${bt.titel} Titel und ${bt.jahre} nachgerechnet – nur mit den Kursen, die am jeweiligen Tag vorlagen. Kosten 0,1 % je Kauf und Verkauf, ohne Steuern und Dividenden.</div>
+      <div class="pb" style="border-left:3px solid var(--warn)"><h2>Korrigiert am 25.09.2026</h2><div class="note" style="color:var(--text)">Die erste Rechnung vom 24.09. enthielt einen Vorgriff auf die Zukunft: Entstanden in einem Titel zwei Anstiege hintereinander, wurde das jüngere Signal nachträglich verworfen, wenn das ältere später gefüllt wurde. Genau diese jüngeren Signale waren schlecht (−0,42 R je Trade). Die Zahlen damals (+18 bis +23 % p. a.) waren deshalb zu hoch. Jetzt gilt vorgriffsfrei: Wartet in einem Titel schon ein älteres Kauflimit, zählt nur dieses. Alle Zahlen hier sind neu gerechnet.</div></div>
       <div class="pb"><h2>So wird gehandelt</h2><div class="note" style="color:var(--text)">${esc(TR.regel.text)}</div>
         <div class="note" style="margin-top:6px">Depot: ${String((TR.depot.risiko || 0.005) * 100).replace(".", ",")} % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen gleichzeitig, je höchstens ${Math.round(TR.depot.max_anteil * 100)} % des Depots. Jeden Abend ein Kauflimit für jedes Signal, dessen Kurs höchstens 5 % über dem Limit steht; nach dem Kauf sofort Stop-Loss und Verkaufslimit legen; ist das Depot voll, die übrigen Limits streichen.</div></div>
-      ${(() => { const tp = bt.tagesplan && bt.tagesplan["alle <= 5 %"]; if (!tp) return ""; const x1 = tp["1995-2011"], x2 = tp["2012-2026"], x3 = tp["2000-2026"];
-        return `<div class="pb"><h2>So wie die App es empfiehlt · Tagesplan</h2>
-        <div class="tiles"><div><div class="k">2012–2026</div><div class="v" style="color:var(--up)">${pct(x2.cagr)} p. a.</div><div class="s">größter Rückgang ${x2.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a.</div></div>
-        <div><div class="k">1995–2011</div><div class="v" style="color:var(--up)">${pct(x1.cagr)} p. a.</div><div class="s">größter Rückgang ${x1.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a.</div></div></div>
-        ${depotKurve({kurve: tp.kurve_sp || bt.kurve})}
-        <div class="note">Jeden Abend Kauflimits für alle Signale höchstens 5 % über dem Limit (typisch ${x2.auftraege_median}, an manchen Abenden bis ${x2.auftraege_p90}), 0,5 % Risiko je Trade, höchstens ${TR.depot.max_pos} Positionen. 2000–2026: ${pct(x3.cagr)} p. a., größter Rückgang ${x3.max_dd} %. Das ist die ehrliche Erwartung – die Werte darunter setzen voraus, dass für jedes Signal ein Limit liegt.</div>
-        ${tp.jahresrenditen ? `<h2 style="margin-top:12px">Jahr für Jahr</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px">${Object.entries(tp.jahresrenditen).map(([y, v]) => `<div style="background:${v >= 0 ? "var(--up-soft)" : "var(--dn-soft)"};border-radius:6px;padding:4px 6px;font-size:12px"><div style="color:var(--muted)">${y}</div><b class="${v >= 0 ? "ok" : "bad"}">${v > 0 ? "+" : ""}${v} %</b></div>`).join("")}</div>` : ""}</div>`; })()}
-      <div class="pb"><h2>Obergrenze: für jedes Signal ein Limit</h2>
-        <div class="tiles"><div><div class="k">2012–2026</div><div class="v">${pct(b.cagr)} p. a.</div><div class="s">größter Rückgang ${b.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a., ${b.sp500_dd} %</div></div>
-        <div><div class="k">1995–2011</div><div class="v">${pct(a.cagr)} p. a.</div><div class="s">größter Rückgang ${a.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a., ${a.sp500_dd} %</div></div></div>
-        <div class="note">2000–2026: ${pct(g.cagr)} p. a., größter Rückgang ${g.max_dd} %. Praktisch kaum machbar (an manchen Abenden 40 und mehr Aufträge) – zeigt, was die Regel selbst hergibt.</div>
-</div>
-      <div class="pb"><h2>Einzelne Trades</h2><div style="overflow-x:auto"><table><tr><th>Zeitraum</th><th class="n">n</th><th class="n">Treffer</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
-        ${zeile("alle", bt.regel)}${zeile("bis 2011", bt.bis2011)}${zeile("ab 2012", bt.ab2012)}${zeile("Zufall zum Vergleich", bt.zufall)}</table></div>
-        <div class="note" style="margin-top:6px">Ein Gewinner brachte im Median <b>${pct(bt.regel.gewinn_median)}</b>, ein Verlierer kostete <b>${pct(bt.regel.verlust_median)}</b>. Nur gut jeder vierte Trade erreicht das Ziel – der Ertrag kommt aus dem Verhältnis von großem Gewinn zu kleinem Verlust. „Zufall“: gleiche Titel, gleicher Stop- und Zielabstand, aber ein zufälliger Einstiegstag – dort blieb fast nichts übrig. Der Vorteil liegt also im Einstieg am 78,6-%-Rücksetzer, nicht im allgemeinen Anstieg der Aktien.</div></div>
-      <div class="pb"><h2>Nach Gruppen</h2><div style="overflow-x:auto"><table><tr><th>Gruppe</th><th class="n">n</th><th class="n">Treffer</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
-        ${Object.entries(bt.klassen || {}).sort((x, y) => y[1].r_mittel - x[1].r_mittel).map(([k, x]) => zeile(k, x)).join("")}</table></div>
-        <div class="note" style="margin-top:6px">Am besten in schwankungsfreudigen Titeln (Tech, Gesundheit, Krypto); ruhige Titel wie deutsche Standardwerte bringen wenig.</div></div>
-      <div class="pb"><h2>Was man aushalten muss</h2><div class="note">Drei von vier Trades enden am Stop. Ein einzelner Titel hatte bis zu ${bt.verlustserie_titel_max} Verlierer in Folge. Das Depot fiel im Rückvergleich zeitweise um bis zu ${Math.abs(g.max_dd || a.max_dd)} % (2008) und hatte vier Verlustjahre. Wer die Regel nur halb befolgt – Stops verschiebt oder Ziele früher nimmt –, zerstört genau das Verhältnis, von dem sie lebt. Titel, die ganz vom Markt verschwanden, fehlen in den Daten; die echten Ergebnisse dürften etwas schwächer sein.</div></div>`;
+      <div class="pb"><h2>Depot im Rückvergleich · so wie die App es empfiehlt</h2>
+        <div class="tiles"><div><div class="k">2012–2026</div><div class="v" style="color:var(--up)">${pct(b.cagr)} p. a.</div><div class="s">größter Rückgang ${b.max_dd} % · S&amp;P 500 ${pct(b.sp500_cagr)} p. a., ${b.sp500_dd} %</div></div>
+        <div><div class="k">1995–2011</div><div class="v" style="color:var(--up)">${pct(a.cagr)} p. a.</div><div class="s">größter Rückgang ${a.max_dd} % · S&amp;P 500 ${pct(a.sp500_cagr)} p. a., ${a.sp500_dd} %</div></div></div>
+        ${depotKurve(bt)}
+        <div class="note">2000–2026: ${pct(g.cagr)} p. a. (S&amp;P 500 ${pct(g.sp500_cagr)}), größter Rückgang ${g.max_dd} %. Mittel aus fünf zufälligen Füllreihenfolgen (2012–2026: ${pct(b.cagr_min)} bis ${pct(b.cagr_max)}). Typisch ${b.auftraege_median} Aufträge am Abend, an manchen bis ${b.auftraege_p90}. Freies Geld als Bargeld – im S&amp;P-500-ETF geparkt hätte es kaum mehr gebracht, weil liegende Limits Guthaben binden.</div>
+        <div class="note" style="margin-top:6px"><b>Lesart:</b> In schwachen Börsenjahrzehnten deutlich besser als der Index, in starken etwa gleich gut – der Vorteil liegt im Einstieg, nicht in einem höheren Ertrag im Bullenmarkt.</div>
+        ${jr.length ? `<h2 style="margin-top:12px">Jahr für Jahr</h2><div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(64px,1fr));gap:4px">${jr.map(([y, v]) => `<div style="background:${v >= 0 ? "var(--up-soft)" : "var(--dn-soft)"};border-radius:6px;padding:4px 6px;font-size:12px"><div style="color:var(--muted)">${y}</div><b class="${v >= 0 ? "ok" : "bad"}">${v > 0 ? "+" : ""}${v} %</b></div>`).join("")}</div>` : ""}</div>
+      <div class="pb"><h2>Einzelne Trades</h2><div style="overflow-x:auto"><table><tr><th>Gruppe</th><th class="n">n</th><th class="n">im Plus</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
+        ${zeile("alle", bt.regel)}${zeile("Variante A", bt.A)}${zeile("Variante B", bt.B)}${zeile("bis 2011", bt.bis2011)}${zeile("ab 2012", bt.ab2012)}${zeile("Zufall zum Vergleich", bt.zufall)}</table></div>
+        <div class="note" style="margin-top:6px">Ein Gewinner brachte im Median <b>${pct(bt.regel.gewinn_median)}</b>, ein Verlierer kostete <b>${pct(bt.regel.verlust_median)}</b>. Nur jeder vierte Trade endet im Gewinn – der Ertrag kommt aus dem Verhältnis von großem Gewinn zu kleinem Verlust. „Zufall“: gleiche Titel, gleicher Stop- und Zielabstand, aber ein zufälliger Einstiegstag.</div></div>
+      <div class="pb"><h2>Nach Gruppen</h2><div style="overflow-x:auto"><table><tr><th>Gruppe</th><th class="n">n</th><th class="n">im Plus</th><th class="n">Ø R</th><th class="n">Ø %</th><th class="n">Tage</th></tr>
+        ${Object.entries(bt.klassen || {}).sort((x, y) => y[1].r_mittel - x[1].r_mittel).map(([k, x]) => zeile(k === "?" ? "weitere Titel (Journal, Wünsche)" : k, x)).join("")}</table></div></div>
+      <div class="pb"><h2>Was man aushalten muss</h2><div class="note">Drei von vier Trades enden im Verlust. Ein einzelner Titel hatte bis zu ${bt.verlustserie_titel_max} Verlierer in Folge. Das Depot fiel im Rückvergleich zeitweise um fast die Hälfte und hatte Verlustjahre von bis zu −29 %. Wer Stops verschiebt oder Ziele früher nimmt, zerstört das Verhältnis, von dem die Regel lebt. Titel, die ganz vom Markt verschwanden, fehlen in den Daten; die echten Ergebnisse dürften etwas schwächer sein.</div></div>`;
   }
 
   // ── Chart eines Trades (Tageskerzen, HKCM-Optik)
@@ -1679,16 +1672,16 @@ body[data-mode="trade"] .nur-lang,body[data-mode="lang"] .nur-trade{display:none
     el.innerHTML = `<div class="inner"><div class="bar-top"><button class="back" id="back">← Zurück</button><h2>${esc(x.name)}</h2></div><div class="body">
       <div class="head"><div><div class="big">${esc(x.name)}</div><div class="meta mono">${esc(x.sym)} · ${art === "wartet" ? "Kauflimit seit " + dat(x.zuerst_gesehen || x.seit) : art === "offen" ? "offen seit " + dat(x.ein_am) : "geschlossen " + dat(x.aus_am)}</div></div>
         <div class="px"><div class="k">Kurs</div><div class="v mono">${tgeld(x.kurs ?? x.aus, w)}</div>${x.kurs_eur != null ? `<div class="k mono" style="text-transform:none;letter-spacing:0">≈ ${fmt(x.kurs_eur)} €</div>` : ""}</div></div>
-      <section class="blk"><div class="lte ${art === "offen" ? "im_bereich" : ""}"><div class="t">Trading · Fibonacci-Rücksetzer ${x.stufe ? "· Stufe " + x.stufe : ""}</div>
+      <section class="blk"><div class="lte ${art === "offen" ? "im_bereich" : ""}"><div class="t">Trading · Fibonacci-Rücksetzer${x.variante ? ` · Variante ${esc(x.variante)} (${esc(x.variante_text || "")})` : ""}</div>
         <div class="stt">${art === "wartet" ? `Kauflimit ${tgeld(x.limit, w)}` : art === "offen" ? "Trade läuft" : GRUND[x.grund] || x.grund}</div>
         <div class="sub">${art === "wartet" ? `Kurs ${pc1(x.abstand_pct)} über dem Limit. Gültig, bis das Limit gefüllt wird, der Kurs unter den Stop fällt oder bis ${dat(x.gueltig_bis)}.` : art === "offen" ? "Stop und Ziel als Aufträge im Depot lassen – nicht verschieben." : ""}</div>
         ${auftrag}
-        <div class="kv">${x.p != null ? `<span class="k">Ziel vor Stop</span><span><b>${x.p} %</b> <span style="color:var(--muted)">– Modell aus ${((TR.backtest && TR.backtest.regel && TR.backtest.regel.n) || 13000).toLocaleString("de-DE")} Trades; im Mittel ${TR.backtest && TR.backtest.regel ? TR.backtest.regel.treffer : 27} %</span></span>` : ""}
-          ${x.ev != null ? `<span class="k">Erwartung</span><span><b>${pR(x.ev)}</b> je Trade <span style="color:var(--muted)">(Mittel aller Trades ${pR(TR.backtest && TR.backtest.regel ? TR.backtest.regel.r_mittel : null)})</span></span>` : ""}
+        <div class="kv">${x.p != null ? `<span class="k">Ziel vor Stop</span><span><b>${x.p} %</b> <span style="color:var(--muted)">– so oft erreichten Trades dieser Variante im Rückvergleich das Ziel vor dem Stop. Eine genauere Einzelprognose gibt es nicht: Kein Merkmal trennte gute von schlechten Signalen verlässlich.</span></span>` : ""}
+          ${x.ev != null ? `<span class="k">Im Mittel</span><span><b>${pR(x.ev)}</b> je Trade <span style="color:var(--muted)">(Vielfache des Risikos, nach Kosten)</span></span>` : ""}
           ${x.crv != null ? `<span class="k">Chance / Risiko</span><span>${x.crv.toFixed(1).replace(".", ",")} : 1 · Risiko ${pc1(x.risiko_pct)}</span>` : ""}
           ${sw != null ? `<span class="k">Anstieg</span><span class="mono">${fmt(x.tief)} → ${fmt(x.hoch)} (+${pc1(sw)})${x.tief_am ? ` <span style="font-family:inherit;color:var(--muted)">ab ${dat(x.tief_am)}</span>` : ""}</span>` : ""}</div></div></section>
       <section class="blk"><div class="cv" id="tcv"></div><div class="note" style="margin-top:6px">Tageskerzen. Blau: Kaufzone vom Limit (78,6 %) bis zum Stop unter dem Tief. Grün: Ziel (161,8 %) und altes Hoch. Durchgezogen der Weg zum Ziel mit der Wahrscheinlichkeit, gestrichelt der Weg zum Stop.</div></section>
-      <details class="fold"><summary>Warum diese Regel</summary><div class="in"><div class="note">${esc(TR.regel.text)} Im Rückvergleich (${TR.backtest ? TR.backtest.titel : ""} Titel, ${TR.backtest ? TR.backtest.jahre : ""}) erreichten ${TR.backtest && TR.backtest.regel ? TR.backtest.regel.treffer : 27} % der Trades das Ziel; ein Gewinner brachte im Median ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.gewinn_median) : ""}, ein Verlierer kostete ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.verlust_median) : ""}. Mit zufälligem Einstiegstag bei gleichem Stop- und Zielabstand blieb fast nichts übrig – der Vorteil ist der Einstieg am Rücksetzer.</div></div></details>
+      <details class="fold"><summary>Warum diese Regel</summary><div class="in"><div class="note">${esc(TR.regel.text)} Im Rückvergleich ohne Vorgriff (${TR.backtest ? TR.backtest.titel : ""} Titel, ${TR.backtest ? TR.backtest.jahre : ""}) endeten ${TR.backtest && TR.backtest.regel ? TR.backtest.regel.treffer : 25} % der Trades im Gewinn; ein Gewinner brachte im Median ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.gewinn_median) : ""}, ein Verlierer kostete ${TR.backtest && TR.backtest.regel ? pct(TR.backtest.regel.verlust_median) : ""}. Mit zufälligem Einstiegstag bei gleichem Stop- und Zielabstand blieb fast nichts übrig (${TR.backtest && TR.backtest.zufall ? pR(TR.backtest.zufall.r_mittel) : ""} statt ${TR.backtest && TR.backtest.regel ? pR(TR.backtest.regel.r_mittel) : ""} je Trade) – der Vorteil ist der Einstieg am Rücksetzer.</div></div></details>
       <p class="note">Keine Anlageberatung. Die Wahrscheinlichkeit ist eine Häufigkeit aus vergleichbaren Lagen der Vergangenheit.</p>
     </div></div>`;
     document.body.appendChild(el); document.body.style.overflow = "hidden";
